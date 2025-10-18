@@ -67,9 +67,27 @@
   top: 0;
   left: 0;
   transition: top 120ms linear, left 120ms linear;
-  /* Placeholder avatar: rounded square. Replace with sprite if you want. */
   background: #8a6cff;
   border: 3px solid white;
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.2) inset, 0 4px 10px rgba(0,0,0,0.15);
+}
+
+@media (max-width: 600px) {
+  :root {
+    --tile: 32px; /* reduce tile size */
+  }
+
+  #room {
+    transform: scale(0.9);   /* optional: slightly scale entire room */
+    transform-origin: top center;
+  }
+
+  #dashboard {
+    font-size: 14px;
+  }
+
+  #hud {
+    font-size: 12px;
+  }
 }

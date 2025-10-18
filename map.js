@@ -190,22 +190,21 @@ function handleSwipe() {
   if (Math.abs(dx) < swipeThreshold && Math.abs(dy) < swipeThreshold) return;
 
   if (Math.abs(dx) > Math.abs(dy)) {
-    // horizontal swipe
+    // horizontal
     if (dx > 0) {
-      tryMove(0, 1);  // swipe right
+        tryMove(0, 1);   // swipe RIGHT → move RIGHT
     } else {
-      tryMove(0, -1); // swipe left
+        tryMove(0, -1);  // swipe LEFT → move LEFT
     }
   } else {
-    // vertical swipe
+    // vertical
     if (dy > 0) {
-      tryMove(1, 0);  // swipe down
+        tryMove(1, 0);   // swipe DOWN → move DOWN
     } else {
-      tryMove(-1, 0); // swipe up
+        tryMove(-1, 0);  // swipe UP → move UP
     }
   }
 }
-
 // Focus the avatar for accessibility key events on some browsers
 avatarEl.focus();
 setAvatarPosition();
