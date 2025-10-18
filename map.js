@@ -11,36 +11,34 @@ const MAP = [
   "WWWWWWWWWW",
 ];
 
-// Derived sizes
 const ROWS = MAP.length;
 const COLS = MAP[0].length;
 
 // DOM
-const room = document.getElementById("room");
 const tiles = document.getElementById("tiles");
 const avatarEl = document.getElementById("avatar");
 const tileLabel = document.getElementById("tile-label");
 
-// Read CSS --tile so mobile scaling stays in sync
+// Get tile size from CSS
 function getTileSize() {
   const v = getComputedStyle(document.documentElement).getPropertyValue("--tile").trim();
-  // strip px
   const n = parseFloat(v.replace("px",""));
   return Number.isFinite(n) ? n : 48;
 }
 let TILE = getTileSize();
 window.addEventListener("resize", () => {
   TILE = getTileSize();
-  setAvatarPosition(); // keep avatar aligned after media-query changes
+  setAvatarPosition();
 });
 
-// Build grid from MAP
-function buildGrid() {
+// Build grid in DOM
+(function buildGrid() {
   tiles.innerHTML = "";
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       const t = document.createElement("div");
       t.classList.add("tile");
+
       const code = MAP[r][c];
       if (code === "W") t.classList.add("tile-wall");
       else if (code === "B") t.classList.add("tile-bed");
@@ -48,15 +46,15 @@ function buildGrid() {
       else if (code === "I") t.classList.add("tile-inv");
       else if (code === "H") t.classList.add("tile-shop");
       else t.classList.add("tile-floor");
+
       t.dataset.row = r;
       t.dataset.col = c;
       tiles.appendChild(t);
     }
   }
-}
-buildGrid();
+})();
 
-// Find start position (A). Treat A as floor afterward.
+// Find avatar start
 let player = { row: 0, col: 0 };
 for (let r = 0; r < ROWS; r++) {
   for (let c = 0; c < COLS; c++) {
@@ -67,14 +65,15 @@ for (let r = 0; r < ROWS; r++) {
   }
 }
 
-function tileCodeAt(r, c) {
-  if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return "W"; // outside = wall
+// Helpers
+function tileCode(r,c) {
+  if (r<0 || r>=ROWS || c<0 || c>=COLS) return "W";
   const code = MAP[r][c];
-  return code === "A" ? "F" : code; // treat A as floor for logic
+  return (code === "A") ? " " : code;
 }
 
 function labelFor(code) {
-  switch (code) {
+  switch(code) {
     case "B": return "Bed";
     case "S": return "Study Portal";
     case "I": return "Inventory Portal";
@@ -84,49 +83,46 @@ function labelFor(code) {
   }
 }
 
-function currentTileType() {
-  return tileCodeAt(player.row, player.col);
+function updateLabel() {
+  const code = tileCode(player.row, player.col);
+  tileLabel.textContent = labelFor(code);
 }
 
-function updateTileLabel() {
-  tileLabel && (tileLabel.textContent = labelFor(currentTileType()));
-}
-
-// Smoothly position avatar
 function setAvatarPosition() {
-  avatarEl.style.top  = `${player.row * TILE}px`;
+  avatarEl.style.top = `${player.row * TILE}px`;
   avatarEl.style.left = `${player.col * TILE}px`;
-  updateTileLabel();
+  updateLabel();
 }
 
-// Walls block movement
-function isBlocked(r, c) {
-  return tileCodeAt(r, c) === "W";
+// Block walls
+function isBlocked(r,c) {
+  return tileCode(r,c) === "W";
 }
 
-// Smooth tile-based movement
+// Movement
 let isMoving = false;
-function tryMove(dr, dc) {
-  if (isMoving) return; // prevent spamming during transition
+function tryMove(dr,dc) {
+  if (isMoving) return;
   const nr = player.row + dr;
   const nc = player.col + dc;
-  if (isBlocked(nr, nc)) return;
+  if (isBlocked(nr,nc)) return;
 
   isMoving = true;
   player.row = nr;
   player.col = nc;
   setAvatarPosition();
 
-  // end movement lock after CSS transition ends (fallback timeout too)
-  const unlock = () => { isMoving = false; avatarEl.removeEventListener("transitionend", unlock); };
+  const unlock = () => {
+    isMoving = false;
+    avatarEl.removeEventListener("transitionend", unlock);
+  };
   avatarEl.addEventListener("transitionend", unlock);
-  setTimeout(unlock, 180); // safety
+  setTimeout(unlock, 200);
 }
 
-// Interactions
+// Interact (Enter portals)
 function interact() {
-  const code = currentTileType();
-
+  const code = tileCode(player.row, player.col);
   if (code === "S") {
     window.location.href = "study.html";
     return;
@@ -140,76 +136,72 @@ function interact() {
     return;
   }
   if (code === "B") {
-    // Bed: small restore
-    petStats.energy = Math.min(100, petStats.energy + 10);
-    petStats.happiness = Math.min(100, petStats.happiness + 3);
-    saveStats(petStats);
-    updateDashboard();
-    flashMessage("Rested in bed: +10 Energy, +3 Happiness");
+    flashMessage("Rest in bed (will add logic later)");
+    return;
   }
+  flashMessage("Nothing to interact with.");
 }
 
-// Tiny toast
+// Toast message
 function flashMessage(msg) {
-  const n = document.createElement("div");
-  n.textContent = msg;
-  n.style.position = "absolute";
-  n.style.left = "50%";
-  n.style.top = "8px";
-  n.style.transform = "translateX(-50%)";
-  n.style.background = "rgba(0,0,0,0.75)";
-  n.style.color = "white";
-  n.style.padding = "6px 10px";
-  n.style.borderRadius = "8px";
-  n.style.fontSize = "12px";
-  n.style.zIndex = "10";
-  room.appendChild(n);
-  setTimeout(() => n.remove(), 1500);
+  const note = document.createElement("div");
+  note.textContent = msg;
+  note.style.position = "absolute";
+  note.style.left = "50%";
+  note.style.top = "8px";
+  note.style.transform = "translateX(-50%)";
+  note.style.background = "rgba(0,0,0,0.7)";
+  note.style.color = "#fff";
+  note.style.padding = "6px 12px";
+  note.style.borderRadius = "6px";
+  note.style.fontSize = "12px";
+  note.style.zIndex = "50";
+  document.body.appendChild(note);
+  setTimeout(() => note.remove(), 1500);
 }
 
-/* ===== 2) CONTROLS ===== */
+/* ✅ CONTROLS */
 
 // Arrow keys
-document.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowUp") tryMove(-1, 0);
-  if (e.key === "ArrowDown") tryMove(1, 0);
-  if (e.key === "ArrowLeft") tryMove(0, -1);
-  if (e.key === "ArrowRight") tryMove(0, 1);
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowUp") tryMove(-1,0);
+  if (e.key === "ArrowDown") tryMove(1,0);
+  if (e.key === "ArrowLeft") tryMove(0,-1);
+  if (e.key === "ArrowRight") tryMove(0,1);
   if (e.key === "Enter") interact();
 });
 
-// Swipe (correct direction)
-let touchStartX = 0, touchStartY = 0;
-let touchEndX = 0, touchEndY = 0;
-const swipeThreshold = 30; // px
+// Swipe
+let startX=0, startY=0, endX=0, endY=0;
+const threshold=30;
 
-window.addEventListener("touchstart", (e) => {
-  const t = e.changedTouches[0];
-  touchStartX = t.screenX;
-  touchStartY = t.screenY;
-}, { passive: true });
+window.addEventListener("touchstart", (e)=>{
+  const t=e.changedTouches[0];
+  startX=t.screenX; 
+  startY=t.screenY;
+},{passive:true});
 
-window.addEventListener("touchend", (e) => {
-  const t = e.changedTouches[0];
-  touchEndX = t.screenX;
-  touchEndY = t.screenY;
+window.addEventListener("touchend", (e)=>{
+  const t=e.changedTouches[0];
+  endX=t.screenX; 
+  endY=t.screenY;
 
-  const dx = touchEndX - touchStartX;
-  const dy = touchEndY - touchStartY;
+  const dx=endX-startX, dy=endY-startY;
+  if(Math.abs(dx)<threshold && Math.abs(dy)<threshold) return;
 
-  if (Math.abs(dx) < swipeThreshold && Math.abs(dy) < swipeThreshold) return;
-
-  if (Math.abs(dx) > Math.abs(dy)) {
-    // horizontal
-    if (dx > 0) tryMove(0, 1);   // right
-    else        tryMove(0, -1);  // left
+  if(Math.abs(dx)>Math.abs(dy)){
+    if(dx>0) tryMove(0,1);   else tryMove(0,-1);
   } else {
-    // vertical
-    if (dy > 0) tryMove(1, 0);   // down
-    else        tryMove(-1, 0);  // up
+    if(dy>0) tryMove(1,0);   else tryMove(-1,0);
   }
-}, { passive: true });
+},{passive:true});
 
-/* ===== 3) INIT ===== */
+// Mobile Enter button support
+const interactBtn = document.getElementById("interact-btn");
+if (interactBtn) {
+  interactBtn.addEventListener("click", interact);
+}
+
+// Init position
 setAvatarPosition();
-updateDashboard(); // from ui.js
+updateDashboard();

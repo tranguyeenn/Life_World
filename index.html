@@ -1,8 +1,11 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>StudyWorld - Home</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
+  <!-- CSS (all in root) -->
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="map.css" />
   <link rel="stylesheet" href="animations.css" />
@@ -18,18 +21,37 @@
     <button id="reset-stats-btn">Reset</button>
   </div>
 
-  <!-- Room HUD -->
+  <!-- HUD -->
   <div id="hud">
-    <span id="hint">Arrow keys to move. Stand on a portal and press Enter.</span>
+    <span id="hint">Use Arrow keys or Swipe. Press Enter or tap button to interact.</span>
     <span id="tile-label"></span>
   </div>
 
-  <!-- Room container (tile-based) -->
-  <div id="room" aria-label="Player room with portals">
-    <div id="tiles" role="grid" aria-label="floor grid"></div>
-    <div id="avatar" class="sprite idle" aria-label="avatar" tabindex="0"></div>
+  <!-- Room container -->
+  <div id="room">
+    <div id="tiles"></div>
+    <div id="avatar"></div>
   </div>
 
+  <!-- ✅ Mobile Enter Button -->
+  <button id="interact-btn" style="
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    background: #8a6cff;
+    color: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    z-index: 999;
+  ">
+    Enter / Interact
+  </button>
+
+  <!-- JS (all in root folder) -->
   <script src="avatar.js"></script>
   <script src="ui.js"></script>
   <script src="map.js"></script>

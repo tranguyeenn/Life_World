@@ -1,23 +1,23 @@
 :root {
-  --tile: 48px;
+  --tile: 48px;  /* desktop tile size */
   --cols: 10;
   --rows: 10;
 }
 
-/* Room wrapper */
+/* ========== ROOM CONTAINER ========== */
 #room {
   position: relative;
   width: calc(var(--cols) * var(--tile));
   height: calc(var(--rows) * var(--tile));
-  background: #efe8ff; /* soft lilac floor */
+  background: #efe8ff;
   border-radius: 12px;
   box-shadow: 0 6px 16px rgba(0,0,0,0.12);
   overflow: hidden;
-  margin: 10px 0 20px;
+  margin: 10px auto 20px;
   outline: 2px solid #e1d6ff;
 }
 
-/* Tile grid */
+/* ========== GRID ========== */
 #tiles {
   display: grid;
   grid-template-columns: repeat(var(--cols), var(--tile));
@@ -26,14 +26,14 @@
   height: 100%;
 }
 
-/* Base tile */
+/* ========== TILE BASE ========== */
 .tile {
   width: var(--tile);
   height: var(--tile);
   box-sizing: border-box;
 }
 
-/* Visuals for tile types (placeholder color blocks) */
+/* ========== TILE TYPES (colors) ========== */
 .tile-floor { background: #f7f2ff; }
 .tile-wall  { background: #cdbaff; }
 .tile-bed   { background: #ffd9e1; }
@@ -41,7 +41,7 @@
 .tile-shop  { background: #fff5c2; }
 .tile-inv   { background: #d2f0ff; }
 
-/* Optional icons letters so you know what's what */
+/* Optional text labels for debugging */
 .tile-bed::after,
 .tile-study::after,
 .tile-shop::after,
@@ -59,7 +59,7 @@
 .tile-inv::after   { content: "INV"; }
 .tile-wall::after  { content: ""; }
 
-/* Avatar is absolutely positioned over the grid */
+/* ========== AVATAR ========== */
 #avatar {
   width: var(--tile);
   height: var(--tile);
@@ -70,17 +70,15 @@
   background: #8a6cff;
   border: 3px solid white;
   border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2) inset, 0 4px 10px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2) inset,
+              0 4px 10px rgba(0,0,0,0.15);
+  z-index: 10;
 }
 
+/* ========== MOBILE LAYOUT ========== */
 @media (max-width: 600px) {
   :root {
-    --tile: 32px; /* reduce tile size */
-  }
-
-  #room {
-    transform: scale(0.9);   /* optional: slightly scale entire room */
-    transform-origin: top center;
+    --tile: 32px;   /* smaller tiles on mobile */
   }
 
   #dashboard {
