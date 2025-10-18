@@ -63,7 +63,12 @@
 
 /* ========== TILE LABEL CONTENT (set via JS or CSS) ========== */
 .tile-bed::after   { content: "BED"; }
-.tile-study::after { content: "STUDY"; }
+.tile-study::after {
+  content: "";
+}
+.tile-study-label::after {
+  content: "STUDY";
+}
 .tile-shop::after  { content: "SHOP"; }
 .tile-inv::after   { content: "INV"; }
 .tile-wall::after  { content: ""; }

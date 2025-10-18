@@ -3,7 +3,7 @@ const MAP = [
   "W  BBB   W",
   "W    BB  W",
   "W  A     W",
-  "W S   IHW",
+  "WSSS  IH W",
   "W        W",
   "W        W",
   "W        W",
@@ -19,7 +19,6 @@ const avatarEl = document.getElementById("avatar");
 const tileLabel = document.getElementById("tile-label");
 const interactBtn = document.getElementById("interact-btn");
 
-// Get tile size from CSS
 function getTileSize() {
   const v = getComputedStyle(document.documentElement).getPropertyValue("--tile").trim();
   return parseFloat(v) || 48;
@@ -30,21 +29,35 @@ window.addEventListener("resize", () => {
   setAvatarPosition();
 });
 
-// Build grid
+/* ==== BUILD GRID with center-study detection ==== */
 (function buildGrid() {
   tiles.innerHTML = "";
+
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       const t = document.createElement("div");
       t.classList.add("tile");
 
       const code = MAP[r][c];
-      if (code === "W") t.classList.add("tile-wall");
-      else if (code === "B") t.classList.add("tile-bed");
-      else if (code === "S") t.classList.add("tile-study");
-      else if (code === "I") t.classList.add("tile-inv");
-      else if (code === "H") t.classList.add("tile-shop");
-      else t.classList.add("tile-floor");
+
+      if (code === "W") {
+        t.classList.add("tile-wall");
+      } else if (code === "B") {
+        t.classList.add("tile-bed");
+      } else if (code === "S") {
+        // Check if this S is center of SSS (left S and right S)
+        const left = MAP[r][c - 1] === "S";
+        const right = MAP[r][c + 1] === "S";
+        const center = left && right; // middle S
+        t.classList.add("tile-study");
+        if (center) t.classList.add("tile-study-label");  // ONLY middle one will show "STUDY"
+      } else if (code === "I") {
+        t.classList.add("tile-inv");
+      } else if (code === "H") {
+        t.classList.add("tile-shop");
+      } else {
+        t.classList.add("tile-floor");
+      }
 
       t.dataset.row = r;
       t.dataset.col = c;
@@ -53,7 +66,7 @@ window.addEventListener("resize", () => {
   }
 })();
 
-// Find avatar start
+/* ==== FIND PLAYER START ==== */
 let player = { row: 0, col: 0 };
 for (let r = 0; r < ROWS; r++) {
   for (let c = 0; c < COLS; c++) {
@@ -64,7 +77,7 @@ for (let r = 0; r < ROWS; r++) {
   }
 }
 
-// Helpers
+/* ==== HELPERS ==== */
 function tileCode(r,c) {
   if (r<0 || r>=ROWS || c<0 || c>=COLS) return "W";
   const code = MAP[r][c];
@@ -105,7 +118,7 @@ function isBlocked(r,c) {
   return tileCode(r,c) === "W";
 }
 
-// Movement
+/* ==== MOVEMENT ==== */
 let isMoving = false;
 function tryMove(dr,dc) {
   if (isMoving) return;
@@ -126,7 +139,7 @@ function tryMove(dr,dc) {
   setTimeout(unlock, 200);
 }
 
-// Interact with portals
+/* ==== INTERACT ==== */
 function interact() {
   const code = tileCode(player.row, player.col);
 
@@ -149,7 +162,6 @@ function interact() {
   flashMessage("Nothing here.");
 }
 
-// Toast
 function flashMessage(msg) {
   const note = document.createElement("div");
   note.textContent = msg;
@@ -167,7 +179,7 @@ function flashMessage(msg) {
   setTimeout(() => note.remove(), 1500);
 }
 
-// Controls
+/* ==== CONTROLS ==== */
 document.addEventListener("keydown", e => {
   if (e.key === "ArrowUp") tryMove(-1,0);
   if (e.key === "ArrowDown") tryMove(1,0);
@@ -176,7 +188,7 @@ document.addEventListener("keydown", e => {
   if (e.key === "Enter") interact();
 });
 
-// Swipe
+// Swipe support
 let startX=0, startY=0;
 window.addEventListener("touchstart", e => {
   const t = e.changedTouches[0];
