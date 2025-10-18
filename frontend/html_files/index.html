@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>StudyWorld - Home</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/map.css" />
+  <link rel="stylesheet" href="../css/animations.css" />
+</head>
+<body>
+  <!-- Dashboard -->
+  <div id="dashboard">
+    <div class="stat">😊 Happiness: <span id="happiness">0</span></div>
+    <div class="stat">⚡ Energy: <span id="energy">0</span></div>
+    <div class="stat">💰 Coins: <span id="coins">0</span></div>
+    <div class="stat">⭐ XP: <span id="xp">0</span></div>
+    <div class="stat">⬆ Level: <span id="level">1</span></div>
+    <button id="reset-stats-btn">Reset</button>
+  </div>
+
+  <!-- Room HUD -->
+  <div id="hud">
+    <span id="hint">Arrow keys to move. Stand on a portal and press Enter.</span>
+    <span id="tile-label"></span>
+  </div>
+
+  <!-- Room container (tile-based) -->
+  <div id="room" aria-label="Player room with portals">
+    <div id="tiles" role="grid" aria-label="floor grid"></div>
+    <div id="avatar" class="sprite idle" aria-label="avatar" tabindex="0"></div>
+  </div>
+
+  <script src="../js/avatar.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/map.js"></script>
+</body>
+</html>
