@@ -154,6 +154,58 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Enter") interact();
 });
 
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowUp") tryMove(-1, 0);
+  if (e.key === "ArrowDown") tryMove(1, 0);
+  if (e.key === "ArrowLeft") tryMove(0, -1);
+  if (e.key === "ArrowRight") tryMove(0, 1);
+  if (e.key === "Enter") interact();
+});
+
+// --- 2) SWIPE SUPPORT FOR MOBILE ---
+let touchStartX = 0;
+let touchStartY = 0;
+let touchEndX = 0;
+let touchEndY = 0;
+const swipeThreshold = 30; // Minimum swipe distance in px
+
+// record touch start
+window.addEventListener("touchstart", (e) => {
+  touchStartX = e.changedTouches[0].screenX;
+  touchStartY = e.changedTouches[0].screenY;
+}, { passive: true });
+
+// record touch end and decide direction
+window.addEventListener("touchend", (e) => {
+  touchEndX = e.changedTouches[0].screenX;
+  touchEndY = e.changedTouches[0].screenY;
+
+  handleSwipe();
+}, { passive: true });
+
+function handleSwipe() {
+  const dx = touchEndX - touchStartX;
+  const dy = touchEndY - touchStartY;
+
+  if (Math.abs(dx) < swipeThreshold && Math.abs(dy) < swipeThreshold) return;
+
+  if (Math.abs(dx) > Math.abs(dy)) {
+    // horizontal swipe
+    if (dx > 0) {
+      tryMove(0, 1);  // swipe right
+    } else {
+      tryMove(0, -1); // swipe left
+    }
+  } else {
+    // vertical swipe
+    if (dy > 0) {
+      tryMove(1, 0);  // swipe down
+    } else {
+      tryMove(-1, 0); // swipe up
+    }
+  }
+}
+
 // Focus the avatar for accessibility key events on some browsers
 avatarEl.focus();
 setAvatarPosition();
