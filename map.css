@@ -49,7 +49,9 @@
 .tile-wall::after {
   display: block;
   text-align: center;
-  font: 700 12px/48px system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: var(--tile);   /* ✅ match tile size */
   color: #594a6b;
   opacity: 0.85;
 }
@@ -88,4 +90,11 @@
   #hud {
     font-size: 12px;
   }
+  .active-tile {
+  outline: 2px solid #fff;
+  box-shadow: 0 0 8px rgba(255,255,255,0.8);
+  z-index: 5;
+  position: relative;
+  }
 }
+
