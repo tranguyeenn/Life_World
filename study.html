@@ -3,50 +3,50 @@
 <head>
   <meta charset="UTF-8" />
   <title>Study Session</title>
-  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <!-- Dashboard -->
-<div id="dashboard">
+  <div id="dashboard">
     <div class="stat">😊 Happiness: <span id="happiness">0</span></div>
     <div class="stat">⚡ Energy: <span id="energy">0</span></div>
     <div class="stat">💰 Coins: <span id="coins">0</span></div>
     <div class="stat">⭐ XP: <span id="xp">0</span></div>
     <div class="stat">⬆ Level: <span id="level">1</span></div>
     <button id="reset-stats-btn">Reset</button>
-</div>
+  </div>
 
-<h1>Study Room</h1>
+  <h1>Study Room</h1>
 
-  <!-- ✅ CUSTOM TIME INPUT -->
-<div id="time-input-box">
+  <!-- CUSTOM TIME INPUT -->
+  <div id="time-input-box">
     <label>Minutes:</label>
     <input type="number" id="minutes-input" min="0" value="25">
     <label>Seconds:</label>
     <input type="number" id="seconds-input" min="0" max="59" value="0">
     <button id="apply-time-btn">Set Time</button>
-</div>
+  </div>
 
   <!-- Timer -->
-<div id="timer-box">
+  <div id="timer-box">
     <p id="time-display">25:00</p>
     <button id="start-btn">Start</button>
     <button id="pause-btn">Pause</button>
     <button id="reset-btn">Reset</button>
-</div>
+  </div>
 
-<div id="reward-box" style="display:none;">
+  <div id="reward-box" style="display:none;">
     <p id="reward-text"></p>
-</div>
+  </div>
 
   <!-- Back Button -->
-<button id="back-btn" onclick="window.location.href='index.html'">
+  <button id="back-btn" onclick="window.location.href='index.html'">
     Back to Home
-</button>
+  </button>
 
-  <!-- ✅ SCRIPTS AT BOTTOM (IMPORTANT) -->
-<script src="../js/avatar.js"></script>
-<script src="../js/ui.js"></script>
-<script src="../js/timer.js"></script>
+  <!-- ✅ Direct file paths -->
+  <script src="avatar.js"></script>
+  <script src="ui.js"></script>
+  <script src="timer.js"></script>
 </body>
 </html>
