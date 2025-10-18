@@ -1,5 +1,5 @@
 :root {
-  --tile: 48px;  /* desktop tile size */
+  --tile: 48px;   /* desktop tile size */
   --cols: 10;
   --rows: 10;
 }
@@ -31,9 +31,10 @@
   width: var(--tile);
   height: var(--tile);
   box-sizing: border-box;
+  position: relative;   /* for ::after text */
 }
 
-/* ========== TILE TYPES (colors) ========== */
+/* ========== TILE COLORS ========== */
 .tile-floor { background: #f7f2ff; }
 .tile-wall  { background: #cdbaff; }
 .tile-bed   { background: #ffd9e1; }
@@ -41,20 +42,26 @@
 .tile-shop  { background: #fff5c2; }
 .tile-inv   { background: #d2f0ff; }
 
-/* Optional text labels for debugging */
+/* ========== LABELS (Always centered, never overlap) ========== */
 .tile-bed::after,
 .tile-study::after,
 .tile-shop::after,
 .tile-inv::after,
 .tile-wall::after {
-  display: block;
-  text-align: center;
+  content: attr(data-label);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-weight: 700;
   font-size: 12px;
-  line-height: var(--tile);   /* ✅ match tile size */
   color: #594a6b;
   opacity: 0.85;
+  pointer-events: none;
 }
+
+/* ========== TILE LABEL CONTENT (set via JS or CSS) ========== */
 .tile-bed::after   { content: "BED"; }
 .tile-study::after { content: "STUDY"; }
 .tile-shop::after  { content: "SHOP"; }
@@ -77,10 +84,18 @@
   z-index: 10;
 }
 
+/* ========== ACTIVE TILE HIGHLIGHT (helps user know where they are) ========== */
+.active-tile {
+  outline: 2px solid white;
+  box-shadow: 0 0 10px rgba(255,255,255,0.9);
+  position: relative;
+  z-index: 5;
+}
+
 /* ========== MOBILE LAYOUT ========== */
 @media (max-width: 600px) {
   :root {
-    --tile: 32px;   /* smaller tiles on mobile */
+    --tile: 32px;   /* shrink tiles on mobile */
   }
 
   #dashboard {
@@ -90,11 +105,4 @@
   #hud {
     font-size: 12px;
   }
-  .active-tile {
-  outline: 2px solid #fff;
-  box-shadow: 0 0 8px rgba(255,255,255,0.8);
-  z-index: 5;
-  position: relative;
-  }
 }
-

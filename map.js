@@ -3,7 +3,7 @@ const MAP = [
   "W  BBB   W",
   "W    BB  W",
   "W  A     W",
-  "WSSS  IH W",
+  "W S   IHW",
   "W        W",
   "W        W",
   "W        W",
@@ -19,6 +19,7 @@ const avatarEl = document.getElementById("avatar");
 const tileLabel = document.getElementById("tile-label");
 const interactBtn = document.getElementById("interact-btn");
 
+// Get tile size from CSS
 function getTileSize() {
   const v = getComputedStyle(document.documentElement).getPropertyValue("--tile").trim();
   return parseFloat(v) || 48;
@@ -29,19 +30,22 @@ window.addEventListener("resize", () => {
   setAvatarPosition();
 });
 
+// Build grid
 (function buildGrid() {
   tiles.innerHTML = "";
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       const t = document.createElement("div");
       t.classList.add("tile");
+
       const code = MAP[r][c];
-      if      (code === "W") t.classList.add("tile-wall");
+      if (code === "W") t.classList.add("tile-wall");
       else if (code === "B") t.classList.add("tile-bed");
       else if (code === "S") t.classList.add("tile-study");
       else if (code === "I") t.classList.add("tile-inv");
       else if (code === "H") t.classList.add("tile-shop");
       else t.classList.add("tile-floor");
+
       t.dataset.row = r;
       t.dataset.col = c;
       tiles.appendChild(t);
@@ -49,6 +53,7 @@ window.addEventListener("resize", () => {
   }
 })();
 
+// Find avatar start
 let player = { row: 0, col: 0 };
 for (let r = 0; r < ROWS; r++) {
   for (let c = 0; c < COLS; c++) {
@@ -59,6 +64,7 @@ for (let r = 0; r < ROWS; r++) {
   }
 }
 
+// Helpers
 function tileCode(r,c) {
   if (r<0 || r>=ROWS || c<0 || c>=COLS) return "W";
   const code = MAP[r][c];
@@ -79,7 +85,6 @@ function labelFor(code) {
 function updateLabel() {
   const code = tileCode(player.row, player.col);
   tileLabel.textContent = labelFor(code);
-  console.log("Standing on:", code);
 }
 
 function highlightTile() {
@@ -100,6 +105,7 @@ function isBlocked(r,c) {
   return tileCode(r,c) === "W";
 }
 
+// Movement
 let isMoving = false;
 function tryMove(dr,dc) {
   if (isMoving) return;
@@ -120,13 +126,22 @@ function tryMove(dr,dc) {
   setTimeout(unlock, 200);
 }
 
+// Interact with portals
 function interact() {
   const code = tileCode(player.row, player.col);
-  console.log("Interacting with:", code);
 
-  if (code === "S") { window.location.href = "study.html"; return; }
-  if (code === "I") { window.location.href = "inventory.html"; return; }
-  if (code === "H") { window.location.href = "shop.html"; return; }
+  if (code === "S") {
+    window.location.href = "study.html";
+    return;
+  }
+  if (code === "I") {
+    window.location.href = "inventory.html";
+    return;
+  }
+  if (code === "H") {
+    window.location.href = "shop.html";
+    return;
+  }
   if (code === "B") {
     flashMessage("Resting in bed...");
     return;
@@ -134,6 +149,7 @@ function interact() {
   flashMessage("Nothing here.");
 }
 
+// Toast
 function flashMessage(msg) {
   const note = document.createElement("div");
   note.textContent = msg;
@@ -151,7 +167,7 @@ function flashMessage(msg) {
   setTimeout(() => note.remove(), 1500);
 }
 
-// ====== CONTROLS ======
+// Controls
 document.addEventListener("keydown", e => {
   if (e.key === "ArrowUp") tryMove(-1,0);
   if (e.key === "ArrowDown") tryMove(1,0);
@@ -160,6 +176,7 @@ document.addEventListener("keydown", e => {
   if (e.key === "Enter") interact();
 });
 
+// Swipe
 let startX=0, startY=0;
 window.addEventListener("touchstart", e => {
   const t = e.changedTouches[0];
@@ -171,7 +188,7 @@ window.addEventListener("touchend", e => {
   const t = e.changedTouches[0];
   const dx = t.screenX - startX;
   const dy = t.screenY - startY;
-  const threshold = 30;
+  const threshold=30;
 
   if (Math.abs(dx) < threshold && Math.abs(dy) < threshold) return;
 
@@ -184,7 +201,10 @@ window.addEventListener("touchend", e => {
   }
 }, {passive:true});
 
-if (interactBtn) interactBtn.addEventListener("click", interact);
+// Mobile Enter button
+if (interactBtn) {
+  interactBtn.addEventListener("click", interact);
+}
 
 // Init
 setAvatarPosition();
