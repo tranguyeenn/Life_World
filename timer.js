@@ -36,6 +36,10 @@ applyTimeBtn.onclick = () => {
     alert("Please enter a time greater than 0.");
     return;
   }
+  else if (total > 120 * 60) { // 120 minutes = 7200 seconds
+    alert("Time cannot exceed 120 minutes (2 hours).");
+    return;
+  }
 
   duration = total;
   remaining = total;
