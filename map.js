@@ -1,11 +1,11 @@
 const MAP = [
   "WWWWWWWWWW",
-  "W  BBB   W",
-  "W    BB  W",
-  "W  A     W",
-  "WSSS  IH W",
+  "WA SSSS  W",
+  "W   SS   W",
   "W        W",
+  "WBBB     W",
   "W        W",
+  "W     IH W",
   "W        W",
   "W        W",
   "WWWWWWWWWW",
@@ -143,6 +143,8 @@ function tryMove(dr,dc) {
 function interact() {
   const code = tileCode(player.row, player.col);
 
+  localStorage.setItem("playerPos", JSON.stringify({row: player.row, col: player.col }));
+
   if (code === "S") {
     window.location.href = "study.html";
     return;
@@ -156,10 +158,32 @@ function interact() {
     return;
   }
   if (code === "B") {
-    flashMessage("Resting in bed...");
+    petStats.happiness = Math.min(100, petStats.happiness + 10);
+    petStats.energy = Math.min(100, petStats.energy + 5);
+
+    saveStats(petStats)
+    updateDashboard();
+  
+    flashMessage("Resting in bed successful!");
     return;
   }
   flashMessage("Nothing here.");
+}
+
+let players = {row: 0, col: 0};
+for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < COLS; c++) {
+    if (MAP[r][c] === "A") {
+      player.row = r;
+      player.col = c;
+    }
+  }
+}
+
+const savedPos = JSON.parse(localStorage.getItem("playerPos") || "null");
+if (savedPos && typeof savedPos.row === "number" && typeof savedPos.col === "number") {
+  player.row = savedPos.row;
+  player.col = savedPos.col;
 }
 
 function flashMessage(msg) {

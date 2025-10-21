@@ -1,7 +1,7 @@
 const defaultStats = {
-    happiness: 80,
-    energy: 90,
-    coins: 90,
+    happiness: 50,
+    energy: 50,
+    coins: 50,
     xp: 0,
     level: 1,
 };

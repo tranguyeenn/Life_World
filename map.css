@@ -11,10 +11,9 @@
   height: calc(var(--rows) * var(--tile));
   background: #efe8ff;
   border-radius: 12px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  box-shadow: 0 6px 16px rgba(38, 124, 33, 0.544);
   overflow: hidden;
   margin: 10px auto 20px;
-  outline: 2px solid #e1d6ff;
 }
 
 /* ========== GRID ========== */
@@ -36,10 +35,10 @@
 
 /* ========== TILE COLORS ========== */
 .tile-floor { background: #f7f2ff; }
-.tile-wall  { background: #cdbaff; }
-.tile-bed   { background: #ffd9e1; }
-.tile-study { background: #d9ffe6; }
-.tile-shop  { background: #fff5c2; }
+.tile-wall  { background: #11d47979; }
+.tile-bed   { background: #06482439; }
+.tile-study { background: #158b6a33; }
+.tile-shop  { background: #026d8058; }
 .tile-inv   { background: #d2f0ff; }
 
 /* ========== LABELS (Always centered, never overlap) ========== */
@@ -56,8 +55,8 @@
   justify-content: center;
   font-weight: 700;
   font-size: 12px;
-  color: #594a6b;
-  opacity: 0.85;
+  color: #000000;
+  opacity: 1.00;
   pointer-events: none;
 }
 
@@ -81,9 +80,8 @@
   top: 0;
   left: 0;
   transition: top 120ms linear, left 120ms linear;
-  background: #8a6cff;
-  border: 3px solid white;
-  border-radius: 8px;
+  background: #029c7b28;
+  border-radius: 50%;
   box-shadow: 0 2px 6px rgba(0,0,0,0.2) inset,
               0 4px 10px rgba(0,0,0,0.15);
   z-index: 10;
@@ -91,7 +89,7 @@
 
 /* ========== ACTIVE TILE HIGHLIGHT (helps user know where they are) ========== */
 .active-tile {
-  outline: 2px solid white;
+  outline: 100% solid white;
   box-shadow: 0 0 10px rgba(255,255,255,0.9);
   position: relative;
   z-index: 5;

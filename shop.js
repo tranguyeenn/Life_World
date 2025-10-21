@@ -1,6 +1,8 @@
 const itemsForSale = [
-  { id: 1, name: "Cute Hat", price: 30 },
-  { id: 2, name: "Toy Ball", price: 20 }
+  { id: 1, name: "Paper", price: 30 },
+  { id: 2, name: "Pen", price: 20 },
+  { id: 3, name: "Notebook", price: 25 },
+  { id: 4, name: "Calculator", price: 50 }
 ];
 
 const shopDiv = document.getElementById("shop-items");
