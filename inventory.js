@@ -10,6 +10,10 @@ function renderInventory() {
 
   if (items.length === 0) {
     invGrid.textContent = "No items owned.";
+    invGrid.style.color = "#ffffffff";
+    invGrid.style.fontWeight = "600";
+    invGrid.style.textAlign = "center";
+    invGrid.style.opacity = "0.9";
     return;
   }
 
