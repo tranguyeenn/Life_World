@@ -1,6 +1,6 @@
 body {
   font-family: "Roboto", sans-serif;
-  background: #00000084;
+  background: #1E1E2F;
   margin: 0;
   padding: 0;
   display: flex;
@@ -13,13 +13,13 @@ body {
 h1 {
   margin-top: 30px;
   font-size: 32px;
-  color: #000000;
+  color: #F5F5F5;
   text-align: center;
 }
 
 /* Dashboard */
 #dashboard {
-  background: rgba(3, 0, 5, 0.043);
+  background: #F8F9FA;
   padding: 15px 25px;
   border-radius: 15px;
   box-shadow: 0 2px 6px rgba(12, 60, 27, 0.654);
@@ -36,8 +36,8 @@ button {
   padding: 10px 20px;
   border-radius: 10px;
   border: none;
-  background-color: #fdfdfd6a;
-  color: rgb(3, 0, 0);
+  background-color: #1E1E1E;
+  color: #E4CDA7;
   font-size: 16px;
   cursor: pointer;
   transition: 0.2s;
@@ -67,7 +67,7 @@ button:hover {
 }
 
 .shop-item, .inv-item {
-  background: #00ff2a67;
+  background: #D1D5DB;
   padding: 15px;
   border-radius: 12px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.542);
@@ -85,6 +85,8 @@ button:hover {
   margin-top: 50px;
   width: 100px;
   display: block;
+  background-color: #000000;
+  color: #9CA3AF;
 }
 
 #hud {
@@ -92,7 +94,7 @@ button:hover {
   display: flex;
   gap: 16px;
   font-size: 13px;
-  color: #1d0606;
+  color: #F5F5F5;
 }
 #tile-label {
   font-weight: bold;
