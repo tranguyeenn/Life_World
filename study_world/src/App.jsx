@@ -4,7 +4,6 @@ import StudyPage from "./pages/StudyPage.jsx";
 import ShopPage from "./pages/ShopPage.jsx";
 import InventoryPage from "./pages/InventoryPage.jsx";
 import About from "./pages/About.jsx";
-import "./styles/popup.css";
 
 export default function App() {
   return (

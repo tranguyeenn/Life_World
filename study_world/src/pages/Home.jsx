@@ -1,51 +1,139 @@
-import { useState } from "react";
-import Dashboard from "../components/Dashboard";
-import Popup from "../components/Popup";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { usePetStats } from "../utils/stats";
 
 export default function Home() {
-  const [hint] = useState(
-    "Use Arrow keys or Swipe. Press Enter or tap button to interact."
-  );
+  const navigate = useNavigate();
+  const [avatar, setAvatar] = useState({ x: 4, y: 4 });
+  const [stats, setStats] = usePetStats();
+  const tileSize = 50;
+  const gridSize = 10;
+
+  // Rooms (INV moved farther)
+  const rooms = [
+    { name: "STUDY", x: 1, y: 2, link: "/study" },
+    { name: "BED", x: 1, y: 7 },
+    { name: "SHOP", x: 7, y: 7, link: "/shop" },
+    { name: "INV", x: 7, y: 2, link: "/inventory" },
+  ];
+
+  // Movement logic — block walls (edges of grid)
+  useEffect(() => {
+    const handleKey = (e) => {
+      setAvatar((prev) => {
+        let { x, y } = prev;
+        if (e.key === "ArrowUp" && y > 1) y--;
+        if (e.key === "ArrowDown" && y < gridSize - 2) y++;
+        if (e.key === "ArrowLeft" && x > 1) x--;
+        if (e.key === "ArrowRight" && x < gridSize - 2) x++;
+        return { x, y };
+      });
+
+      if (e.key === "Enter") handleEnter();
+    };
+
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [avatar]);
+
+  // Interactions
+  const handleEnter = () => {
+    const nearby = rooms.find(
+      (r) => Math.abs(r.x - avatar.x) <= 1 && Math.abs(r.y - avatar.y) <= 1
+    );
+    if (!nearby) return;
+
+    if (nearby.name === "BED") {
+      const updated = {
+        ...stats,
+        energy: Math.min(100, stats.energy + 5),
+        happiness: Math.min(100, stats.happiness + 5),
+      };
+      setStats(updated);
+      alert("You rested! +5 Energy, +5 Happiness ✨");
+    } else if (nearby.link) {
+      navigate(nearby.link);
+    }
+  };
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-purple-100 text-gray-900 relative">
-      <Dashboard />
-
-      <div id="hud" className="flex flex-col items-center mt-4 text-sm">
-        <span id="hint" className="opacity-80">{hint}</span>
-        <span id="tile-label" className="font-semibold"></span>
+    <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center relative">
+      {/* HUD */}
+      <div className="absolute top-4 flex gap-4 text-sm bg-white/10 px-4 py-2 rounded-md">
+        <span>😊 Happiness: {stats.happiness}</span>
+        <span>⚡ Energy: {stats.energy}</span>
+        <span>💰 Coins: {stats.coins}</span>
+        <span>⭐ XP: {stats.xp}</span>
+        <span>⬆ Level: {stats.level}</span>
       </div>
 
+      <p className="mt-16 text-gray-300">
+        Use Arrow keys or Swipe. Press Enter to interact.
+      </p>
+
+            {/* Map */}
       <div
-        id="room"
-        className="relative w-80 h-80 bg-violet-200 rounded-xl shadow-lg mt-6 overflow-hidden flex items-center justify-center"
+        className="relative bg-gradient-to-b from-slate-200 to-slate-300 rounded-[40px] shadow-2xl border-[6px] border-slate-600 mt-6 overflow-hidden"
+        style={{
+          width: tileSize * gridSize,
+          height: tileSize * gridSize,
+          boxShadow: "0 8px 20px rgba(0,0,0,0.4)",
+        }}
       >
-        <div
-          id="tiles"
-          className="absolute inset-0 grid grid-cols-10 grid-rows-10 gap-px"
-        ></div>
+        {/* Soft floor grid */}
+        <div className="absolute inset-0 grid grid-cols-10 grid-rows-10">
+          {[...Array(gridSize * gridSize)].map((_, i) => {
+            const x = i % gridSize;
+            const y = Math.floor(i / gridSize);
+            const isWall =
+              x === 0 || y === 0 || x === gridSize - 1 || y === gridSize - 1;
+            return (
+              <div
+                key={i}
+                className={`w-full h-full transition-all ${
+                  isWall
+                    ? "bg-slate-700"
+                    : "bg-gradient-to-br from-slate-100 to-slate-200"
+                }`}
+              ></div>
+            );
+          })}
+        </div>
+
+        {/* Rooms */}
+        {rooms.map((r, i) => {
+          const isNear =
+            Math.abs(r.x - avatar.x) <= 1 && Math.abs(r.y - avatar.y) <= 1;
+          return (
+            <div
+              key={i}
+              className={`absolute text-sm font-semibold px-2 py-1 rounded-xl text-center shadow-md transition-all ${
+                isNear
+                  ? "bg-green-400 text-black scale-110 shadow-lg"
+                  : "bg-white/90 text-gray-800"
+              }`}
+              style={{
+                left: r.x * tileSize + tileSize / 6,
+                top: r.y * tileSize + tileSize / 6,
+                width: tileSize * 1.5,
+              }}
+            >
+              {r.name}
+            </div>
+          );
+        })}
+
+        {/* Avatar */}
         <div
           id="avatar"
-          className="absolute w-10 h-10 bg-green-200 rounded-full shadow-inner border border-white"
+          className="absolute bg-gradient-to-br from-green-400 to-emerald-500 border-[3px] border-white rounded-full shadow-2xl transition-all duration-150"
+          style={{
+            width: tileSize * 0.8,
+            height: tileSize * 0.8,
+            left: avatar.x * tileSize + tileSize * 0.1,
+            top: avatar.y * tileSize + tileSize * 0.1,
+          }}
         ></div>
-        <p className="text-sm text-gray-600 absolute bottom-2">(Map placeholder)</p>
-      </div>
-
-      <button
-        id="interact-btn"
-        className="fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 text-lg rounded-lg bg-white/60 text-black shadow-lg z-50"
-      >
-        Enter
-      </button>
-
-      <Popup />
-
-      <div className="flex gap-4 mt-10">
-        <Link to="/study" className="bg-white/70 px-4 py-2 rounded-xl font-medium hover:bg-white transition">Study</Link>
-        <Link to="/shop" className="bg-white/70 px-4 py-2 rounded-xl font-medium hover:bg-white transition">Shop</Link>
-        <Link to="/inventory" className="bg-white/70 px-4 py-2 rounded-xl font-medium hover:bg-white transition">Inventory</Link>
-        <Link to="/about" className="bg-white/70 px-4 py-2 rounded-xl font-medium hover:bg-white transition">About</Link>
       </div>
     </div>
   );

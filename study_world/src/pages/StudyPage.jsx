@@ -14,12 +14,14 @@ export default function StudyPage() {
   const [reward, setReward] = useState(null);
   const intervalRef = useRef(null);
 
+  // Format display
   const formatTime = (sec) => {
     const m = Math.floor(sec / 60);
     const s = sec % 60;
     return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   };
 
+  // Timer logic
   useEffect(() => {
     if (running && remaining > 0) {
       intervalRef.current = setInterval(() => {
@@ -37,7 +39,6 @@ export default function StudyPage() {
     const total = minutes * 60 + seconds;
     if (total <= 0) return alert("Please enter a time greater than 0.");
     if (total > 120 * 60) return alert("Time cannot exceed 120 minutes (2 hours).");
-
     setDuration(total);
     setRemaining(total);
     setReward(null);
@@ -51,6 +52,7 @@ export default function StudyPage() {
     setReward(null);
   };
 
+  // XP & reward logic
   const sessionComplete = () => {
     const totalMinutes = duration / 60;
     let coins = totalMinutes * 1;
@@ -72,6 +74,7 @@ export default function StudyPage() {
       xp: stats.xp + Math.floor(xp),
     };
 
+    // Handle leveling
     let required = updated.level * 100;
     while (updated.xp >= required) {
       updated.xp -= required;
@@ -85,68 +88,74 @@ export default function StudyPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-b from-indigo-950 to-indigo-800 text-white">
+    <div className="min-h-screen bg-gradient-to-b from-indigo-950 to-indigo-800 text-white flex flex-col items-center">
       <Dashboard />
 
-      <h1 className="text-3xl font-bold mt-6 mb-4">Study Room</h1>
+      <h1 className="text-4xl font-bold mt-10 mb-6">Study Room</h1>
 
-      <div className="flex gap-2 mb-6">
-        <label>Minutes:</label>
-        <input
-          type="number"
-          value={minutes}
-          onChange={(e) => setMinutes(parseInt(e.target.value) || 0)}
-          min="0"
-          className="text-black w-16 px-1 rounded"
-        />
-        <label>Seconds:</label>
-        <input
-          type="number"
-          value={seconds}
-          onChange={(e) => setSeconds(parseInt(e.target.value) || 0)}
-          min="0"
-          max="59"
-          className="text-black w-16 px-1 rounded"
-        />
-        <button
-          onClick={applyTime}
-          className="bg-sky-500 px-3 py-1 rounded hover:bg-sky-600"
-        >
-          Set Time
-        </button>
-      </div>
+      {/* Timer Box */}
+      <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-xl p-8 flex flex-col items-center text-center w-[90%] max-w-md">
+        <div className="flex items-center justify-center gap-3 mb-6">
+          <div className="flex flex-col items-center">
+            <label className="text-sm text-gray-200">Minutes</label>
+            <input
+              type="number"
+              value={minutes}
+              onChange={(e) => setMinutes(parseInt(e.target.value) || 0)}
+              min="0"
+              className="text-black w-16 px-2 py-1 rounded-md text-center"
+            />
+          </div>
 
-      <div id="timer-box" className="text-center mb-6">
-        <p className="text-5xl font-mono mb-4">{formatTime(remaining)}</p>
-        <div className="flex gap-3 justify-center">
+          <div className="flex flex-col items-center">
+            <label className="text-sm text-gray-200">Seconds</label>
+            <input
+              type="number"
+              value={seconds}
+              onChange={(e) => setSeconds(parseInt(e.target.value) || 0)}
+              min="0"
+              max="59"
+              className="text-black w-16 px-2 py-1 rounded-md text-center"
+            />
+          </div>
+
+          <button
+            onClick={applyTime}
+            className="bg-sky-500 hover:bg-sky-600 px-4 py-2 rounded-md text-white font-medium transition"
+          >
+            Set Time
+          </button>
+        </div>
+
+        <p className="text-6xl font-mono mb-6 drop-shadow">{formatTime(remaining)}</p>
+
+        <div className="flex gap-4">
           <button
             onClick={start}
-            className="bg-green-500 px-3 py-1 rounded hover:bg-green-600"
+            className="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-md text-white font-semibold transition"
           >
             Start
           </button>
           <button
             onClick={pause}
-            className="bg-yellow-500 px-3 py-1 rounded hover:bg-yellow-600"
+            className="bg-yellow-400 hover:bg-yellow-500 px-4 py-2 rounded-md text-black font-semibold transition"
           >
             Pause
           </button>
           <button
             onClick={reset}
-            className="bg-red-500 px-3 py-1 rounded hover:bg-red-600"
+            className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-md text-white font-semibold transition"
           >
             Reset
           </button>
         </div>
-      </div>
 
-      {reward && (
-        <div id="reward-box" className="text-center mt-4">
-          <p className="text-lg font-medium">
-            +{reward.coins} Coins, +{reward.xp} XP
-          </p>
-        </div>
-      )}
+        {reward && (
+          <div className="mt-6 bg-green-400/20 text-green-200 rounded-xl py-3 px-6 font-medium">
+            +{reward.coins} Coins • +{reward.xp} XP
+          </div>
+        )}
+      </div>
 
       <Link
         to="/"
