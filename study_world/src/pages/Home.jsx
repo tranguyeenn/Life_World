@@ -1,23 +1,28 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { usePetStats } from "../utils/stats";
 import Dashboard from "../components/Dashboard";
+import { Dialog, Transition } from "@headlessui/react";
+import { Info, ArrowRight } from "lucide-react";
+import Lottie from "lottie-react";
+import confetti from "../assets/confetti.json"; // add gentle confetti Lottie
 
 export default function Home() {
   const navigate = useNavigate();
   const [stats, setStats] = usePetStats();
   const [avatar, setAvatar] = useState({ x: 4, y: 1 });
+  const [showReward, setShowReward] = useState(false);
   const tileSize = 50;
   const gridSize = 10;
 
   const rooms = [
-    { name: "STUDY", x: 1, y: 1, link: "/study" },
-    { name: "INV", x: 7, y: 1, link: "/inventory" },
-    { name: "SHOP", x: 7, y: 8, link: "/shop" },
-    { name: "BED", x: 1, y: 8 },
+    { name: "Study", x: 1, y: 2, link: "/study" },
+    { name: "Inv", x: 7, y: 2, link: "/inventory" },
+    { name: "Shop", x: 7, y: 7, link: "/shop" },
+    { name: "Rest", x: 1, y: 7 },
   ];
 
-  // Movement with wall collision
+  // movement logic
   useEffect(() => {
     const handleKey = (e) => {
       setAvatar((prev) => {
@@ -36,11 +41,11 @@ export default function Home() {
 
   function handleInteraction() {
     const currentRoom = rooms.find(
-    (r) => Math.abs(r.x - avatar.x) <= 1 && Math.abs(r.y - avatar.y) <= 1
+      (r) => Math.abs(r.x - avatar.x) <= 1 && Math.abs(r.y - avatar.y) <= 1
     );
     if (!currentRoom) return;
 
-    if (currentRoom.name === "BED") {
+    if (currentRoom.name === "Rest") {
       const updated = {
         ...stats,
         happiness: Math.min(100, stats.happiness + 5),
@@ -48,6 +53,7 @@ export default function Home() {
       };
       setStats(updated);
       localStorage.setItem("petStats", JSON.stringify(updated));
+      setShowReward(true);
     } else if (currentRoom.link) {
       navigate(currentRoom.link);
     }
@@ -56,68 +62,74 @@ export default function Home() {
   const handleMobileEnter = () => handleInteraction();
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-slate-900 text-white relative">
-      {/* Top section (Dashboard + About) */}
-      <div className="flex items-center justify-center gap-3 mt-4 mb-4">
+    <div className="min-h-screen flex flex-col items-center justify-start text-white relative overflow-hidden">
+      {/* Background: slow gradient shift for a dreamy look */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_#0a0f1e,_#182a3b,_#101820)] animate-breathe opacity-100"></div>
+
+      {/* HUD */}
+      <div className="z-10 flex items-center justify-center gap-4 mt-6 mb-2">
         <Dashboard />
         <Link
           to="/about"
-          className="bg-white text-slate-900 font-medium rounded-md px-4 py-1 shadow-sm hover:bg-gray-200 transition"
+          className="flex items-center gap-1 bg-white/90 text-slate-900 font-medium rounded-md px-4 py-1 shadow-sm hover:bg-white transition-all"
         >
+          <Info className="w-4 h-4 opacity-80" />
           About
         </Link>
       </div>
 
-      {/* Instructions */}
-      <p className="text-sm opacity-80 mb-2">
-        Use Arrow keys or Swipe. Press Enter or tap the button to interact.
-      </p>
+      {/* Floating tip (unchanged position) */}
+      <div className="absolute top-20 left-1/2 -translate-x-1/2 text-sm text-white/80 font-medium animate-float z-10 flex items-center gap-1 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm border border-white/10">
+        <ArrowRight className="w-4 h-4 text-emerald-300 animate-pulse" />
+        <span>Use arrow keys to move</span>
+      </div>
 
       {/* Map */}
       <div
-        className="relative bg-gradient-to-b from-slate-200 to-slate-300 rounded-[40px] shadow-2xl border-[6px] border-slate-600 mt-6 overflow-hidden"
+        className="relative rounded-[40px] border-[5px] border-slate-700 bg-gradient-to-b from-slate-800/70 to-slate-900/90 shadow-[0_4px_25px_rgba(0,0,0,0.6)] mt-10 overflow-hidden z-10"
         style={{
           width: tileSize * gridSize,
           height: tileSize * gridSize,
-          boxShadow: "0 8px 20px rgba(0,0,0,0.4)",
+          display: "grid",
+          gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
+          gridTemplateRows: `repeat(${gridSize}, 1fr)`,
         }}
       >
-        {/* Soft floor grid */}
-        <div className="absolute inset-0 grid grid-cols-10 grid-rows-10">
-          {[...Array(gridSize * gridSize)].map((_, i) => {
-            const x = i % gridSize;
-            const y = Math.floor(i / gridSize);
-            const isWall =
-              x === 0 || y === 0 || x === gridSize - 1 || y === gridSize - 1;
-            return (
-              <div
-                key={i}
-                className={`w-full h-full transition-all ${
-                  isWall
-                    ? "bg-slate-700"
-                    : "bg-gradient-to-br from-slate-100 to-slate-200"
-                }`}
-              ></div>
-            );
-          })}
-        </div>
+        {/* Ground tiles */}
+        {[...Array(gridSize * gridSize)].map((_, i) => {
+          const x = i % gridSize;
+          const y = Math.floor(i / gridSize);
+          const isWall =
+            x === 0 || y === 0 || x === gridSize - 1 || y === gridSize - 1;
+          return (
+            <div
+              key={i}
+              className={`transition-all duration-300 ${
+                isWall
+                  ? "bg-slate-700/70"
+                  : "bg-slate-800/40 hover:bg-slate-700/60"
+              }`}
+            ></div>
+          );
+        })}
 
-        {/* Rooms */}
+        {/* Room icons */}
         {rooms.map((r, i) => {
           const isNear =
             Math.abs(r.x - avatar.x) <= 1 && Math.abs(r.y - avatar.y) <= 1;
           return (
             <div
               key={i}
-              className={`absolute text-sm font-semibold px-2 py-1 rounded-xl text-center shadow-md transition-all ${
+              className={`absolute flex items-center justify-center text-xs font-semibold rounded-lg text-center transition-all tracking-wide ${
                 isNear
-                  ? "bg-green-400 text-black scale-110 shadow-lg"
-                  : "bg-white/90 text-gray-800"
+                  ? "bg-emerald-300 text-slate-900 scale-110 shadow-[0_0_10px_rgba(52,211,153,0.6)]"
+                  : "bg-white/20 text-white/80 hover:bg-white/30"
               }`}
               style={{
                 left: r.x * tileSize + tileSize / 6,
                 top: r.y * tileSize + tileSize / 6,
                 width: tileSize * 1.5,
+                height: tileSize * 0.8,
               }}
             >
               {r.name}
@@ -125,26 +137,69 @@ export default function Home() {
           );
         })}
 
-        {/* Avatar */}
+        {/* Avatar — glowing soft circle */}
         <div
           id="avatar"
-          className="absolute bg-gradient-to-br from-green-400 to-emerald-500 border-[3px] border-white rounded-full shadow-2xl transition-all duration-150"
+          className="absolute bg-gradient-to-br from-emerald-300 via-green-400 to-teal-500 border-[2px] border-white/70 rounded-full shadow-[0_0_20px_rgba(52,211,153,0.8)] transition-all duration-150 ease-linear"
           style={{
-            width: tileSize * 0.8,
-            height: tileSize * 0.8,
-            left: avatar.x * tileSize + tileSize * 0.1,
-            top: avatar.y * tileSize + tileSize * 0.1,
+            width: tileSize * 0.55,
+            height: tileSize * 0.55,
+            left: avatar.x * tileSize + tileSize * 0.15,
+            top: avatar.y * tileSize + tileSize * 0.15,
           }}
         ></div>
       </div>
 
-      {/* Mobile Enter Button */}
+      {/* Mobile Enter */}
       <button
         onClick={handleMobileEnter}
-        className="mt-8 mb-6 px-8 py-3 bg-white text-slate-900 text-lg font-semibold rounded-xl shadow-md hover:bg-gray-200 transition"
+        className="z-10 mt-8 mb-8 px-8 py-3 bg-emerald-300/90 text-slate-900 text-lg font-semibold rounded-xl shadow-[0_4px_20px_rgba(52,211,153,0.5)] hover:bg-emerald-300 transition-all active:scale-[0.97]"
       >
         Enter
       </button>
+
+      {/* Reward Modal */}
+      <Transition appear show={showReward} as={Fragment}>
+        <Dialog
+          as="div"
+          className="relative z-50"
+          onClose={() => setShowReward(false)}
+        >
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 flex items-center justify-center p-4">
+            <Dialog.Panel className="relative bg-slate-900 text-white rounded-2xl p-8 text-center shadow-2xl w-[90%] max-w-sm border border-emerald-400/30">
+              <Lottie
+                animationData={confetti}
+                loop={false}
+                className="w-32 h-32 mx-auto"
+              />
+              <Dialog.Title className="text-xl font-semibold text-emerald-300">
+                You feel well-rested.
+              </Dialog.Title>
+              <Dialog.Description className="text-sm text-slate-300 mt-2">
+                +5 Happiness • +5 Energy
+              </Dialog.Description>
+              <button
+                onClick={() => setShowReward(false)}
+                className="mt-5 bg-emerald-300/90 text-slate-900 px-6 py-2 rounded-lg font-medium hover:bg-emerald-300 transition-all active:scale-[0.97]"
+              >
+                Continue
+              </button>
+            </Dialog.Panel>
+          </div>
+        </Dialog>
+      </Transition>
     </div>
   );
 }
