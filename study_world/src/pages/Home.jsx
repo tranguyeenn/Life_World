@@ -1,23 +1,23 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { usePetStats } from "../utils/stats";
+import Dashboard from "../components/Dashboard";
 
 export default function Home() {
   const navigate = useNavigate();
-  const [avatar, setAvatar] = useState({ x: 4, y: 4 });
   const [stats, setStats] = usePetStats();
+  const [avatar, setAvatar] = useState({ x: 4, y: 1 });
   const tileSize = 50;
   const gridSize = 10;
 
-  // Rooms (INV moved farther)
   const rooms = [
-    { name: "STUDY", x: 1, y: 2, link: "/study" },
-    { name: "BED", x: 1, y: 7 },
-    { name: "SHOP", x: 7, y: 7, link: "/shop" },
-    { name: "INV", x: 7, y: 2, link: "/inventory" },
+    { name: "STUDY", x: 1, y: 1, link: "/study" },
+    { name: "INV", x: 7, y: 1, link: "/inventory" },
+    { name: "SHOP", x: 7, y: 8, link: "/shop" },
+    { name: "BED", x: 1, y: 8 },
   ];
 
-  // Movement logic — block walls (edges of grid)
+  // Movement with wall collision
   useEffect(() => {
     const handleKey = (e) => {
       setAvatar((prev) => {
@@ -28,50 +28,52 @@ export default function Home() {
         if (e.key === "ArrowRight" && x < gridSize - 2) x++;
         return { x, y };
       });
-
-      if (e.key === "Enter") handleEnter();
+      if (e.key === "Enter") handleInteraction();
     };
-
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [avatar]);
 
-  // Interactions
-  const handleEnter = () => {
-    const nearby = rooms.find(
-      (r) => Math.abs(r.x - avatar.x) <= 1 && Math.abs(r.y - avatar.y) <= 1
+  function handleInteraction() {
+    const currentRoom = rooms.find(
+    (r) => Math.abs(r.x - avatar.x) <= 1 && Math.abs(r.y - avatar.y) <= 1
     );
-    if (!nearby) return;
+    if (!currentRoom) return;
 
-    if (nearby.name === "BED") {
+    if (currentRoom.name === "BED") {
       const updated = {
         ...stats,
-        energy: Math.min(100, stats.energy + 5),
         happiness: Math.min(100, stats.happiness + 5),
+        energy: Math.min(100, stats.energy + 5),
       };
       setStats(updated);
-      alert("You rested! +5 Energy, +5 Happiness ✨");
-    } else if (nearby.link) {
-      navigate(nearby.link);
+      localStorage.setItem("petStats", JSON.stringify(updated));
+    } else if (currentRoom.link) {
+      navigate(currentRoom.link);
     }
-  };
+  }
+
+  const handleMobileEnter = () => handleInteraction();
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center relative">
-      {/* HUD */}
-      <div className="absolute top-4 flex gap-4 text-sm bg-white/10 px-4 py-2 rounded-md">
-        <span>😊 Happiness: {stats.happiness}</span>
-        <span>⚡ Energy: {stats.energy}</span>
-        <span>💰 Coins: {stats.coins}</span>
-        <span>⭐ XP: {stats.xp}</span>
-        <span>⬆ Level: {stats.level}</span>
+    <div className="min-h-screen flex flex-col items-center bg-slate-900 text-white relative">
+      {/* Top section (Dashboard + About) */}
+      <div className="flex items-center justify-center gap-3 mt-4 mb-4">
+        <Dashboard />
+        <Link
+          to="/about"
+          className="bg-white text-slate-900 font-medium rounded-md px-4 py-1 shadow-sm hover:bg-gray-200 transition"
+        >
+          About
+        </Link>
       </div>
 
-      <p className="mt-16 text-gray-300">
-        Use Arrow keys or Swipe. Press Enter to interact.
+      {/* Instructions */}
+      <p className="text-sm opacity-80 mb-2">
+        Use Arrow keys or Swipe. Press Enter or tap the button to interact.
       </p>
 
-            {/* Map */}
+      {/* Map */}
       <div
         className="relative bg-gradient-to-b from-slate-200 to-slate-300 rounded-[40px] shadow-2xl border-[6px] border-slate-600 mt-6 overflow-hidden"
         style={{
@@ -135,6 +137,14 @@ export default function Home() {
           }}
         ></div>
       </div>
+
+      {/* Mobile Enter Button */}
+      <button
+        onClick={handleMobileEnter}
+        className="mt-8 mb-6 px-8 py-3 bg-white text-slate-900 text-lg font-semibold rounded-xl shadow-md hover:bg-gray-200 transition"
+      >
+        Enter
+      </button>
     </div>
   );
 }
