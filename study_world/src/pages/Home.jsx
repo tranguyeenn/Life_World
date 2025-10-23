@@ -25,6 +25,7 @@ export default function Home() {
     { name: "inventory", x: 7, y: 2, link: "/inventory" },
     { name: "shop", x: 7, y: 7, link: "/shop" },
     { name: "rest", x: 1, y: 7 },
+    { name: "games", x: 4, y: 7, link: "/games" },
   ];
 
   // Save avatar position persistently
