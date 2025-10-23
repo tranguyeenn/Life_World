@@ -12,7 +12,6 @@ export default function Home() {
   const navigate = useNavigate();
   const [stats, setStats] = usePetStats();
   const [avatar, setAvatar] = useState(() => {
-    // Load last position from storage if available
     const saved = localStorage.getItem("avatarPos");
     return saved ? JSON.parse(saved) : { x: 4, y: 1 };
   });
@@ -33,42 +32,10 @@ export default function Home() {
     localStorage.setItem("avatarPos", JSON.stringify(avatar));
   }, [avatar]);
 
-  // Background particles + custom cursor
-  useEffect(() => {
-    const particleContainer = document.createElement("div");
-    particleContainer.id = "particle-bg";
-    document.body.appendChild(particleContainer);
-
-    for (let i = 0; i < 30; i++) {
-      const p = document.createElement("div");
-      p.className = "particle";
-      p.style.width = `${Math.random() * 6 + 2}px`;
-      p.style.height = p.style.width;
-      p.style.left = `${Math.random() * 100}%`;
-      p.style.animationDuration = `${8 + Math.random() * 6}s`;
-      p.style.animationDelay = `${Math.random() * 10}s`;
-      particleContainer.appendChild(p);
-    }
-
-    const cursor = document.createElement("div");
-    cursor.id = "custom-cursor";
-    document.body.appendChild(cursor);
-    const moveCursor = (e) => {
-      cursor.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
-    };
-    window.addEventListener("mousemove", moveCursor);
-
-    return () => {
-      window.removeEventListener("mousemove", moveCursor);
-      particleContainer.remove();
-      cursor.remove();
-    };
-  }, []);
-
-  // Movement logic
+  // Movement
   useEffect(() => {
     const handleKey = (e) => {
-      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key))
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key))
         e.preventDefault();
 
       setAvatar((prev) => {
@@ -95,7 +62,7 @@ export default function Home() {
     else setPetMood("happy");
   }, [stats]);
 
-  // Interaction handler
+  // Interactions
   function handleInteraction() {
     const currentRoom = rooms.find(
       (r) => Math.abs(r.x - avatar.x) <= 1 && Math.abs(r.y - avatar.y) <= 1
@@ -153,7 +120,9 @@ export default function Home() {
 
       {/* Map */}
       <div
-        className="relative rounded-[40px] border-[5px] border-slate-700 bg-gradient-to-b from-slate-800/70 to-slate-900/90 shadow-[0_4px_25px_rgba(0,0,0,0.6)] mt-10 overflow-hidden z-10"
+        className="relative rounded-[40px] border-[5px] border-slate-700 
+        bg-gradient-to-b from-slate-800/70 to-slate-900/90 shadow-[0_4px_25px_rgba(0,0,0,0.6)] 
+        mt-10 overflow-hidden z-10"
         style={{
           width: tileSize * gridSize,
           height: tileSize * gridSize,
@@ -187,7 +156,8 @@ export default function Home() {
           return (
             <div
               key={i}
-              className={`absolute flex items-center justify-center text-xs font-semibold rounded-lg text-center transition-all tracking-wide ${
+              className={`absolute flex items-center justify-center text-xs font-semibold rounded-lg 
+              text-center transition-all tracking-wide ${
                 isNear
                   ? "bg-emerald-300 text-slate-900 scale-110 shadow-[0_0_10px_rgba(52,211,153,0.6)]"
                   : "bg-white/20 text-white/80 hover:bg-white/30"
@@ -230,27 +200,42 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Bottom controls */}
-      <div className="w-full flex items-center justify-center relative mt-10 mb-8">
-        <Link
-          to="/about"
-          className="absolute left-8 flex items-center gap-1 bg-white/90 text-slate-900 font-medium rounded-md px-4 py-1 shadow-sm hover:bg-white transition-all"
-        >
-          <Info className="w-4 h-4 opacity-80" />
-          about
-        </Link>
+      {/* Enter button centered */}
+      <div className="w-full flex justify-center mt-10 mb-16 z-30">
+      <button
+        onClick={handleMobileEnter}
+        className="px-10 py-3 bg-white/90 text-slate-900 text-lg font-semibold rounded-xl 
+        shadow-[0_4px_20px_rgba(71,85,105,0.4)] hover:bg-white transition-all active:scale-[0.97]"
+      >
+        enter
+      </button>
+    </div>
 
-        <button
-          onClick={handleMobileEnter}
-          className="z-10 px-8 py-3 bg-slate-100 text-slate-900 text-lg font-semibold rounded-xl shadow-[0_4px_20px_rgba(71,85,105,0.45)] hover:bg-slate-200 transition-all active:scale-[0.97]"
-        >
-          enter
-        </button>
-      </div>
+      {/* Floating About (bottom-left) */}
+      <Link
+        to="/about"
+        className="fixed bottom-6 left-6 flex items-center gap-1 bg-white/90 text-slate-900 font-medium rounded-md px-3 py-1.5 shadow-md hover:bg-white transition-all"
+        style={{ whiteSpace: "nowrap" }}
+      >
+        <Info className="w-4 h-4 opacity-80 shrink-0" />
+        <span>about</span>
+      </Link>
+
+      {/* Floating Leaderboard (bottom-right) */}
+      <Link
+        to="/leaderboard"
+        className="fixed bottom-6 right-6 bg-emerald-400/90 text-slate-900 font-semibold rounded-full px-5 py-3 shadow-[0_4px_20px_rgba(52,211,153,0.4)] hover:bg-emerald-300 hover:scale-105 transition-all"
+      >
+        🏆
+      </Link>
 
       {/* Reward Modal */}
       <Transition appear show={showReward} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={() => setShowReward(false)}>
+        <Dialog
+          as="div"
+          className="relative z-50"
+          onClose={() => setShowReward(false)}
+        >
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -265,7 +250,11 @@ export default function Home() {
 
           <div className="fixed inset-0 flex items-center justify-center p-4">
             <Dialog.Panel className="relative bg-slate-900 text-white rounded-2xl p-8 text-center shadow-2xl w-[90%] max-w-sm border border-emerald-400/30">
-              <Lottie animationData={confetti} loop={false} className="w-32 h-32 mx-auto" />
+              <Lottie
+                animationData={confetti}
+                loop={false}
+                className="w-32 h-32 mx-auto"
+              />
               <Dialog.Title className="text-xl font-semibold text-emerald-300">
                 you're well-rested.
               </Dialog.Title>

@@ -4,6 +4,7 @@ import StudyPage from "./pages/StudyPage.jsx";
 import ShopPage from "./pages/ShopPage.jsx";
 import InventoryPage from "./pages/InventoryPage.jsx";
 import About from "./pages/About.jsx";
+import LeaderboardPage from "./pages/LeaderboardPage.jsx";
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
         <Route path="/shop" element={<ShopPage />} />
         <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/about" element={<About />} />
+        <Route path="/leaderboard" element={<LeaderboardPage />} />
       </Routes>
     </Router>
   );
