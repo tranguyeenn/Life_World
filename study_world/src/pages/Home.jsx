@@ -270,7 +270,7 @@ export default function Home() {
                 you're well-rested.
               </Dialog.Title>
               <Dialog.Description className="text-sm text-slate-300 mt-2">
-                +10 energy • +5 happiness • -5 coins
+                +10 energy • +5 happiness
               </Dialog.Description>
               <button
                 onClick={() => setShowReward(false)}
