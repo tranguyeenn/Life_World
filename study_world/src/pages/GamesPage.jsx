@@ -32,10 +32,10 @@ export default function GamesPage() {
       </div>
 
       <Link
-        to="/"
-        className="mt-12 mb-8 flex items-center gap-2 text-emerald-300/90 font-medium hover:text-emerald-300 transition-all"
+        to="/home"
+        className="z-50 mt-12 mb-8 flex items-center gap-2 text-emerald-300/90 font-medium hover:text-emerald-300 transition-all"
       >
-        ← back home
+        ← back to map
       </Link>
     </div>
   );
