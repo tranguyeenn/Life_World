@@ -3,20 +3,35 @@ import { Link } from "react-router-dom";
 import Dashboard from "../../components/Dashboard";
 import { usePetStats } from "../../utils/stats";
 
-// === FETCH WORDS FROM API ===
-const fetchWords = async (count = 50) => {
-  try {
-    const res = await fetch(`https://random-word-api.herokuapp.com/word?number=${count}`);
-    const data = await res.json();
-    // filter out weird stuff and keep it lowercase
-    return data.filter((w) => /^[a-z]+$/.test(w.toLowerCase()));
-  } catch (err) {
-    console.error("Word API failed, falling back to local list:", err);
-    return ["code", "study", "focus", "react", "logic", "light", "flow"];
-  }
-};
-
 export default function TypingPage() {
+  // === FETCH WORDS FROM DATAMUSE + RANDOMIZE ===
+  const fetchWords = async (count = 50) => {
+    try {
+      const res = await fetch(`https://api.datamuse.com/words?sp=?????&max=${count * 2}`);
+      const data = await res.json();
+
+      // Clean and randomize
+      const clean = data
+        .map((w) => w.word.toLowerCase())
+        .filter((w) => /^[a-z]+$/.test(w));
+
+      // Fisher–Yates shuffle, the only chaos algorithm worth respecting
+      for (let i = clean.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [clean[i], clean[j]] = [clean[j], clean[i]];
+      }
+
+      // Slice to your desired word count
+      return clean.slice(0, count);
+    } catch (err) {
+      console.error("Datamuse failed, falling back to local list:", err);
+      const fallback = ["apple", "chair", "table", "water", "music", "plant", "light", "dream", "train", "green"];
+      // Shuffle fallback too, because fairness
+      return fallback.sort(() => Math.random() - 0.5).slice(0, count);
+    }
+  };
+
+  // === STATE ===
   const [stats, setStats] = usePetStats();
   const [words, setWords] = useState([]);
   const [input, setInput] = useState("");
@@ -32,7 +47,7 @@ export default function TypingPage() {
   const containerRef = useRef(null);
   const wordRefs = useRef([]);
 
-  // load initial batch
+  // === LOAD INITIAL WORDS ===
   useEffect(() => {
     (async () => {
       const newWords = await fetchWords(50);
@@ -40,7 +55,7 @@ export default function TypingPage() {
     })();
   }, []);
 
-  // timer
+  // === TIMER ===
   useEffect(() => {
     let timer;
     if (started && timeLeft > 0) {
@@ -51,7 +66,7 @@ export default function TypingPage() {
     return () => clearInterval(timer);
   }, [started, timeLeft]);
 
-  // scroll to keep active word visible
+  // === KEEP ACTIVE WORD VISIBLE ===
   const ensureActiveWordVisible = (index) => {
     const container = containerRef.current;
     const el = wordRefs.current[index];
@@ -70,19 +85,18 @@ export default function TypingPage() {
     }
   };
 
-  // handle typing
-  const handleInput = async (e) => {
+  // === HANDLE INPUT ===
+  const handleInput = (e) => {
     if (!started) setStarted(true);
     setInput(e.target.value);
 
     if (e.target.value.endsWith(" ")) {
       checkWord(e.target.value.trim());
       setInput("");
-
       setCurrentWordIndex((i) => {
         const next = i + 1;
 
-        // fetch more words dynamically when near the end
+        // Fetch more words dynamically when near the end
         if (next >= words.length - 10) {
           fetchWords(40).then((newWords) =>
             setWords((prev) => [...prev, ...newWords])
@@ -104,11 +118,9 @@ export default function TypingPage() {
 
   const finishTest = () => {
     setFinished(true);
-
     const elapsed = 60 - timeLeft || 1;
-    const wpm = Math.round((correctWords / elapsed) * 60);
-    const accuracy =
-      totalTyped === 0 ? 0 : Math.round((correctWords / totalTyped) * 100);
+    const wpm = Math.round((totalTyped / elapsed) * 60);
+    const accuracy = totalTyped === 0 ? 0 : Math.round((correctWords / totalTyped) * 100);
 
     let xpGain = 0;
     let coinGain = 0;
@@ -123,9 +135,7 @@ export default function TypingPage() {
       coinGain = Math.floor(wpm / 8);
       reaction = "“not bad, keyboard warrior.” 😏";
     } else {
-      xpGain = 0;
-      coinGain = 0;
-      reaction = "“bro… what are those typos?” 😿";
+      reaction = "“bro… what are you on?” 😿";
     }
 
     if (xpGain > 0 || coinGain > 0) {
@@ -156,10 +166,10 @@ export default function TypingPage() {
     wordRefs.current = [];
   };
 
+  // === RENDER ===
   return (
     <div className="min-h-screen flex flex-col items-center text-white bg-gradient-to-b from-slate-950 via-slate-900 to-slate-800 relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(52,211,153,0.08),_transparent_70%)] pointer-events-none" />
-
       <div className="w-full z-20">
         <Dashboard />
       </div>
@@ -186,7 +196,7 @@ export default function TypingPage() {
         </div>
       )}
 
-      {/* Word strip */}
+      {/* Word Strip */}
       <div
         ref={containerRef}
         className="w-[90%] max-w-3xl h-[140px] rounded-xl p-6 text-lg md:text-xl leading-relaxed tracking-wide
@@ -197,8 +207,7 @@ export default function TypingPage() {
       >
         {words.map((w, i) => {
           let className = "text-slate-400";
-          if (i === currentWordIndex)
-            className = "text-white underline underline-offset-4";
+          if (i === currentWordIndex) className = "text-white underline underline-offset-4";
           if (i < currentWordIndex) className = "text-emerald-400";
           return (
             <span
@@ -225,18 +234,12 @@ export default function TypingPage() {
 
       {finished && petReaction && (
         <div className="mt-8 bg-white/10 border border-white/10 backdrop-blur-md rounded-2xl p-8 text-center shadow-[0_8px_30px_rgba(0,0,0,0.4)] w-[90%] max-w-md">
-          <h2 className="text-2xl font-semibold text-emerald-300 mb-2">
-            Test Complete
-          </h2>
+          <h2 className="text-2xl font-semibold text-emerald-300 mb-2">Test Complete</h2>
           <p className="text-slate-300 mb-1">
-            WPM:{" "}
-            <span className="font-semibold text-white">{petReaction.wpm}</span>
+            WPM: <span className="font-semibold text-white">{petReaction.wpm}</span>
           </p>
           <p className="text-slate-300 mb-1">
-            Accuracy:{" "}
-            <span className="font-semibold text-white">
-              {petReaction.accuracy}%
-            </span>
+            Accuracy: <span className="font-semibold text-white">{petReaction.accuracy}%</span>
           </p>
           <p className="text-slate-400 mb-3 text-sm">
             {petReaction.xpGain > 0
