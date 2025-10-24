@@ -1,12 +1,12 @@
 import { useState, useEffect, Fragment } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { usePetStats } from "../utils/stats";
-import Dashboard from "../components/Dashboard";
 import { Dialog, Transition } from "@headlessui/react";
 import { Info, ArrowRight } from "lucide-react";
 import Lottie from "lottie-react";
 import confetti from "../assets/confetti.json";
 import avatarImg from "../assets/avatar.png";
+import Dashboard from "../components/Dashboard";
+import { usePetStats } from "../utils/stats";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -17,6 +17,7 @@ export default function Home() {
   });
   const [showReward, setShowReward] = useState(false);
   const [petMood, setPetMood] = useState("happy");
+
   const tileSize = 50;
   const gridSize = 10;
 
@@ -33,7 +34,7 @@ export default function Home() {
     localStorage.setItem("avatarPos", JSON.stringify(avatar));
   }, [avatar]);
 
-  // Movement
+  // Keyboard movement
   useEffect(() => {
     const handleKey = (e) => {
       if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key))
@@ -63,11 +64,35 @@ export default function Home() {
     else setPetMood("happy");
   }, [stats]);
 
-  // Interactions
-  function handleInteraction() {
-    const currentRoom = rooms.find(
-      (r) => Math.abs(r.x - avatar.x) <= 1 && Math.abs(r.y - avatar.y) <= 1
-    );
+  // Energy & happiness drain over time (every 10 mins)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const restZone = rooms.find((r) => r.name === "rest");
+      const isResting =
+        Math.abs(avatar.x - restZone.x) <= 1 &&
+        Math.abs(avatar.y - restZone.y) <= 1;
+
+      if (!isResting) {
+        const updated = {
+          ...stats,
+          energy: Math.max(0, stats.energy - 2),
+          happiness: Math.max(0, stats.happiness - 2),
+        };
+        setStats(updated);
+        localStorage.setItem("petStats", JSON.stringify(updated));
+      }
+    }, 600000); // 10 minutes
+
+    return () => clearInterval(interval);
+  }, [avatar, stats]);
+
+  // Core interaction logic
+  function handleInteraction(targetRoom) {
+    const currentRoom =
+      targetRoom ||
+      rooms.find(
+        (r) => Math.abs(r.x - avatar.x) <= 1 && Math.abs(r.y - avatar.y) <= 1
+      );
     if (!currentRoom) return;
 
     if (currentRoom.name === "rest") {
@@ -85,7 +110,16 @@ export default function Home() {
     }
   }
 
-  const handleMobileEnter = () => handleInteraction();
+  // When user clicks a tile
+  const handleTileClick = (tileX, tileY) => {
+    const targetRoom = rooms.find((r) => r.x === tileX && r.y === tileY);
+    setAvatar({ x: tileX, y: tileY });
+
+    // Auto-enter if it's a portal
+    if (targetRoom) {
+      setTimeout(() => handleInteraction(targetRoom), 300);
+    }
+  };
 
   const moodEmoji = {
     happy: "😸",
@@ -107,16 +141,22 @@ export default function Home() {
         <Dashboard />
       </div>
 
-      {/* Floating tip */}
+      {/* Floating tip (desktop) */}
       <div
         className="absolute top-[6.5rem] left-1/2 -translate-x-1/2 
         flex items-center gap-2 text-sm font-medium text-white/80 
         bg-white/5 border border-white/10 rounded-full 
         backdrop-blur-md px-4 py-1.5 z-20 shadow-[0_0_12px_rgba(52,211,153,0.15)]
-        animate-float"
+        animate-float hidden sm:flex"
       >
         <ArrowRight className="w-4 h-4 text-emerald-300 animate-pulse-slow" />
         <span className="tracking-wide">use arrow keys to move</span>
+      </div>
+
+      {/* Floating arrow (mobile) */}
+      <div className="sm:hidden fixed bottom-20 left-1/2 -translate-x-1/2 flex flex-col items-center z-40">
+        <ArrowRight className="w-8 h-8 text-emerald-300 animate-bounce rotate-90" />
+        <p className="text-xs text-slate-400 mt-1">tap a tile or portal</p>
       </div>
 
       {/* Map */}
@@ -141,9 +181,10 @@ export default function Home() {
           return (
             <div
               key={i}
-              className={`transition-all duration-300 ${
+              onClick={() => !isWall && handleTileClick(x, y)}
+              className={`transition-all duration-300 cursor-pointer ${
                 isWall
-                  ? "bg-slate-700/70"
+                  ? "bg-slate-700/70 cursor-default"
                   : "bg-slate-800/40 hover:bg-slate-700/60"
               }`}
             />
@@ -157,8 +198,9 @@ export default function Home() {
           return (
             <div
               key={i}
+              onClick={() => handleTileClick(r.x, r.y)}
               className={`absolute flex items-center justify-center text-xs font-semibold rounded-lg 
-              text-center transition-all tracking-wide ${
+              text-center transition-all tracking-wide cursor-pointer ${
                 isNear
                   ? "bg-emerald-300 text-slate-900 scale-110 shadow-[0_0_10px_rgba(52,211,153,0.6)]"
                   : "bg-white/20 text-white/80 hover:bg-white/30"
@@ -200,35 +242,6 @@ export default function Home() {
           </span>
         </div>
       </div>
-
-      {/* Enter button centered */}
-      <div className="w-full flex justify-center mt-10 mb-16 z-30">
-      <button
-        onClick={handleMobileEnter}
-        className="px-10 py-3 bg-white/90 text-slate-900 text-lg font-semibold rounded-xl 
-        shadow-[0_4px_20px_rgba(71,85,105,0.4)] hover:bg-white transition-all active:scale-[0.97]"
-      >
-        enter
-      </button>
-    </div>
-
-      {/* Floating About (bottom-left) */}
-      <Link
-        to="/about"
-        className="fixed bottom-6 left-6 flex items-center gap-1 bg-white/90 text-slate-900 font-medium rounded-md px-3 py-1.5 shadow-md hover:bg-white transition-all"
-        style={{ whiteSpace: "nowrap" }}
-      >
-        <Info className="w-4 h-4 opacity-80 shrink-0" />
-        <span>about</span>
-      </Link>
-
-      {/* Floating Leaderboard (bottom-right) */}
-      <Link
-        to="/leaderboard"
-        className="fixed bottom-6 right-6 bg-emerald-400/90 text-slate-900 font-semibold rounded-full px-5 py-3 shadow-[0_4px_20px_rgba(52,211,153,0.4)] hover:bg-emerald-300 hover:scale-105 transition-all"
-      >
-        🏆
-      </Link>
 
       {/* Reward Modal */}
       <Transition appear show={showReward} as={Fragment}>

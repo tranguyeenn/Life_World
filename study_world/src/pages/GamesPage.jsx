@@ -26,8 +26,8 @@ export default function GamesPage() {
           ⌨️ typing test
         </Link>
 
-        <Link to="/games/crossword" className="bg-slate-800/60 hover:bg-slate-700/70 border border-emerald-400/20 rounded-2xl p-6 text-center font-medium text-emerald-300 shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:scale-[1.03] transition-all">
-          🧠 mini crossword
+        <Link to="/games/math" className="bg-slate-800/60 hover:bg-slate-700/70 border border-emerald-400/20 rounded-2xl p-6 text-center font-medium text-emerald-300 shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:scale-[1.03] transition-all">
+          🧮 math & logic test
         </Link>
       </div>
 

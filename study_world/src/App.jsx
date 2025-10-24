@@ -13,7 +13,7 @@ import GamesPage from "./pages/GamesPage.jsx";
 // === Game Pages ===
 import TypingPage from "./pages/games/TypingPage.jsx";
 import WordlePage from "./pages/games/WordlePage.jsx";
-import CrosswordPage from "./pages/games/CrosswordPage.jsx";
+import MathPage from "./pages/games/MathPage.jsx";
 
 export default function App() {
   return (
@@ -34,7 +34,7 @@ export default function App() {
         <Route path="/games" element={<GamesPage />} />
         <Route path="/games/typing" element={<TypingPage />} />
         <Route path="/games/wordle" element={<WordlePage />} />
-        <Route path="/games/crossword" element={<CrosswordPage />} />
+        <Route path="/games/math" element={<MathPage />} />
       </Routes>
     </Router>
   );
