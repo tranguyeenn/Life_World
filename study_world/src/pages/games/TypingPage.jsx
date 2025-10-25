@@ -4,17 +4,22 @@ import Dashboard from "../../components/Dashboard";
 import { usePetStats } from "../../utils/stats";
 
 export default function TypingPage() {
+  // === FETCH WORDS ===
   const fetchWords = async (count = 50) => {
     try {
       const res = await fetch(`https://api.datamuse.com/words?sp=?????&max=${count * 2}`);
       const data = await res.json();
+
       const clean = data
         .map((w) => w.word.toLowerCase())
         .filter((w) => /^[a-z]+$/.test(w));
+
+      // shuffle words
       for (let i = clean.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [clean[i], clean[j]] = [clean[j], clean[i]];
       }
+
       return clean.slice(0, count);
     } catch (err) {
       console.error("Datamuse failed, falling back to local list:", err);
@@ -23,6 +28,7 @@ export default function TypingPage() {
     }
   };
 
+  // === STATES ===
   const [stats, setStats] = usePetStats();
   const [words, setWords] = useState([]);
   const [input, setInput] = useState("");
@@ -34,36 +40,39 @@ export default function TypingPage() {
   const [finished, setFinished] = useState(false);
   const [petReaction, setPetReaction] = useState(null);
 
+  // === REFS ===
   const inputRef = useRef(null);
   const containerRef = useRef(null);
   const wordRefs = useRef([]);
 
+  // === INITIAL FETCH ===
   useEffect(() => {
     (async () => {
-      const newWords = await fetchWords(50);
-      setWords(newWords);
+      setWords(await fetchWords(50));
     })();
   }, []);
 
+  // === TIMER HANDLER ===
   useEffect(() => {
-    let timer;
-    if (started && timeLeft > 0) {
-      timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
-    } else if (timeLeft === 0) {
-      finishTest();
-    }
+    if (!started) return;
+    if (timeLeft <= 0) return finishTest();
+
+    const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
     return () => clearInterval(timer);
   }, [started, timeLeft]);
 
+  // === SCROLL HANDLER ===
   const ensureActiveWordVisible = (index) => {
     const container = containerRef.current;
     const el = wordRefs.current[index];
     if (!container || !el) return;
+
     const padding = 40;
     const elLeft = el.offsetLeft;
     const elRight = elLeft + el.offsetWidth;
     const viewLeft = container.scrollLeft;
     const viewRight = viewLeft + container.clientWidth;
+
     if (elLeft < viewLeft + padding) {
       container.scrollLeft = Math.max(0, elLeft - padding);
     } else if (elRight > viewRight - padding) {
@@ -71,19 +80,20 @@ export default function TypingPage() {
     }
   };
 
+  // === INPUT HANDLER ===
   const handleInput = (e) => {
     if (!started) setStarted(true);
-    setInput(e.target.value);
+    const val = e.target.value;
+    setInput(val);
 
-    if (e.target.value.endsWith(" ")) {
-      checkWord(e.target.value.trim());
+    if (val.endsWith(" ")) {
+      checkWord(val.trim());
       setInput("");
+
       setCurrentWordIndex((i) => {
         const next = i + 1;
         if (next >= words.length - 10) {
-          fetchWords(40).then((newWords) =>
-            setWords((prev) => [...prev, ...newWords])
-          );
+          fetchWords(40).then((newWords) => setWords((prev) => [...prev, ...newWords]));
         }
         setTimeout(() => ensureActiveWordVisible(next), 0);
         return next;
@@ -91,24 +101,20 @@ export default function TypingPage() {
     }
   };
 
-  const checkWord = (typedWord) => {
+  // === WORD CHECK ===
+  const checkWord = (typed) => {
     setTotalTyped((prev) => prev + 1);
-    if (typedWord === words[currentWordIndex]) {
-      setCorrectWords((prev) => prev + 1);
-    }
+    if (typed === words[currentWordIndex]) setCorrectWords((prev) => prev + 1);
   };
 
+  // === END TEST ===
   const finishTest = () => {
     setFinished(true);
     const elapsed = 60 - timeLeft || 1;
     const wpm = Math.round((totalTyped / elapsed) * 60);
-    const accuracy =
-      totalTyped === 0 ? 0 : Math.round((correctWords / totalTyped) * 100);
+    const accuracy = totalTyped ? Math.round((correctWords / totalTyped) * 100) : 0;
 
-    let xpGain = 0;
-    let coinGain = 0;
-    let reaction = "";
-
+    let xpGain, coinGain, reaction;
     if (wpm > 85) {
       xpGain = Math.floor(wpm * (accuracy / 100));
       coinGain = Math.floor(wpm / 4);
@@ -118,7 +124,6 @@ export default function TypingPage() {
       coinGain = Math.floor(wpm / 8);
       reaction = "“not bad, keyboard warrior.” 😏";
     } else {
-      // Mercy reward for effort
       xpGain = 1;
       coinGain = 1;
       reaction = "“slow and steady still counts.” 😿";
@@ -136,23 +141,25 @@ export default function TypingPage() {
     setPetReaction({ text: reaction, xpGain, coinGain, wpm, accuracy });
   };
 
+  // === RESTART ===
   const restart = async () => {
     setFinished(false);
     setStarted(false);
     setCorrectWords(0);
     setTotalTyped(0);
     setTimeLeft(60);
-    const freshWords = await fetchWords(50);
-    setWords(freshWords);
     setInput("");
     setCurrentWordIndex(0);
+    setWords(await fetchWords(50));
     if (containerRef.current) containerRef.current.scrollLeft = 0;
     wordRefs.current = [];
   };
 
+  // === RENDER ===
   return (
     <div className="min-h-screen flex flex-col items-center text-white bg-gradient-to-b from-slate-950 via-slate-900 to-slate-800 relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(52,211,153,0.08),_transparent_70%)] pointer-events-none" />
+
       <div className="w-full z-20">
         <Dashboard />
       </div>
@@ -179,26 +186,22 @@ export default function TypingPage() {
         </div>
       )}
 
-      {/* Word Strip */}
+      {/* === WORD STRIP === */}
       <div
         ref={containerRef}
-        className="w-[90%] max-w-3xl h-[140px] rounded-xl p-6 text-lg md:text-xl leading-relaxed tracking-wide
-        bg-slate-800/40 border border-slate-700/60 shadow-[0_0_25px_rgba(0,0,0,0.3)] select-none 
-        overflow-x-auto whitespace-nowrap"
+        className="w-[90%] max-w-3xl h-[140px] rounded-xl p-6 text-lg md:text-xl leading-relaxed tracking-wide bg-slate-800/40 border border-slate-700/60 shadow-[0_0_25px_rgba(0,0,0,0.3)] select-none overflow-x-auto whitespace-nowrap"
         onClick={() => inputRef.current?.focus()}
         style={{ scrollbarWidth: "none" }}
       >
         {words.map((w, i) => {
-          let className = "text-slate-400";
-          if (i === currentWordIndex)
-            className = "text-white underline underline-offset-4";
-          if (i < currentWordIndex) className = "text-emerald-400";
+          const color =
+            i < currentWordIndex
+              ? "text-emerald-400"
+              : i === currentWordIndex
+              ? "text-white underline underline-offset-4"
+              : "text-slate-400";
           return (
-            <span
-              key={i}
-              ref={(el) => (wordRefs.current[i] = el)}
-              className={`${className} mx-[8px] inline-block`}
-            >
+            <span key={i} ref={(el) => (wordRefs.current[i] = el)} className={`${color} mx-[8px] inline-block`}>
               {w}
             </span>
           );
@@ -222,16 +225,10 @@ export default function TypingPage() {
             Test Complete
           </h2>
           <p className="text-slate-300 mb-1">
-            WPM:{" "}
-            <span className="font-semibold text-white">
-              {petReaction.wpm}
-            </span>
+            WPM: <span className="font-semibold text-white">{petReaction.wpm}</span>
           </p>
           <p className="text-slate-300 mb-1">
-            Accuracy:{" "}
-            <span className="font-semibold text-white">
-              {petReaction.accuracy}%
-            </span>
+            Accuracy: <span className="font-semibold text-white">{petReaction.accuracy}%</span>
           </p>
           <p className="text-slate-400 mb-3 text-sm">
             +{petReaction.xpGain} xp • +{petReaction.coinGain} coins

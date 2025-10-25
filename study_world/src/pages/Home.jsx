@@ -1,7 +1,7 @@
 import { useState, useEffect, Fragment } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Dialog, Transition } from "@headlessui/react";
-import { Info, ArrowRight } from "lucide-react";
+import { Dialog, Transition, Menu } from "@headlessui/react";
+import { MoreVertical, ArrowRight, Info, Trophy } from "lucide-react";
 import Lottie from "lottie-react";
 import confetti from "../assets/confetti.json";
 import avatarImg from "../assets/avatar.png";
@@ -29,12 +29,12 @@ export default function Home() {
     { name: "games", x: 4, y: 7, link: "/games" },
   ];
 
-  // Save avatar position persistently
+  // Save avatar position
   useEffect(() => {
     localStorage.setItem("avatarPos", JSON.stringify(avatar));
   }, [avatar]);
 
-  // Keyboard movement
+  // Movement controls
   useEffect(() => {
     const handleKey = (e) => {
       if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key))
@@ -64,7 +64,7 @@ export default function Home() {
     else setPetMood("happy");
   }, [stats]);
 
-  // Energy & happiness drain over time (every 10 mins)
+  // Energy drain
   useEffect(() => {
     const interval = setInterval(() => {
       const restZone = rooms.find((r) => r.name === "rest");
@@ -81,12 +81,10 @@ export default function Home() {
         setStats(updated);
         localStorage.setItem("petStats", JSON.stringify(updated));
       }
-    }, 600000); // 10 minutes
-
+    }, 600000);
     return () => clearInterval(interval);
   }, [avatar, stats]);
 
-  // Core interaction logic
   function handleInteraction(targetRoom) {
     const currentRoom =
       targetRoom ||
@@ -110,15 +108,10 @@ export default function Home() {
     }
   }
 
-  // When user clicks a tile
   const handleTileClick = (tileX, tileY) => {
     const targetRoom = rooms.find((r) => r.x === tileX && r.y === tileY);
     setAvatar({ x: tileX, y: tileY });
-
-    // Auto-enter if it's a portal
-    if (targetRoom) {
-      setTimeout(() => handleInteraction(targetRoom), 300);
-    }
+    if (targetRoom) setTimeout(() => handleInteraction(targetRoom), 300);
   };
 
   const moodEmoji = {
@@ -129,41 +122,24 @@ export default function Home() {
   }[petMood];
 
   return (
-    <div
-      className="min-h-screen flex flex-col items-center text-white relative overflow-hidden fade-in"
-      style={{ animation: "fadeIn 0.8s ease-in forwards" }}
-    >
+    <div className="min-h-screen flex flex-col items-center text-white relative overflow-hidden fade-in">
       {/* Background */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_#0a0f1e,_#182a3b,_#101820)] pointer-events-none" />
 
       {/* Dashboard */}
-      <div className="w-full flex flex-col items-center mt-0 z-20">
+      <div className="w-full flex flex-col items-center fixed top-0 z-20 bg-slate-900/70 backdrop-blur-md border-b border-slate-700 shadow-md">
         <Dashboard />
       </div>
 
-      {/* Floating tip (desktop) */}
-      <div
-        className="absolute top-[6.5rem] left-1/2 -translate-x-1/2 
-        flex items-center gap-2 text-sm font-medium text-white/80 
-        bg-white/5 border border-white/10 rounded-full 
-        backdrop-blur-md px-4 py-1.5 z-20 shadow-[0_0_12px_rgba(52,211,153,0.15)]
-        animate-float hidden sm:flex"
-      >
+      {/* Tip */}
+      <div className="absolute top-[6.5rem] left-1/2 -translate-x-1/2 flex items-center gap-2 text-sm font-medium text-white/80 bg-white/5 border border-white/10 rounded-full backdrop-blur-md px-4 py-1.5 z-20 shadow-[0_0_12px_rgba(52,211,153,0.15)] animate-float hidden sm:flex">
         <ArrowRight className="w-4 h-4 text-emerald-300 animate-pulse-slow" />
         <span className="tracking-wide">use arrow keys to move</span>
       </div>
 
-      {/* Floating arrow (mobile) */}
-      <div className="sm:hidden fixed bottom-20 left-1/2 -translate-x-1/2 flex flex-col items-center z-40">
-        <ArrowRight className="w-8 h-8 text-emerald-300 animate-bounce rotate-90" />
-        <p className="text-xs text-slate-400 mt-1">tap a tile or portal</p>
-      </div>
-
       {/* Map */}
       <div
-        className="relative rounded-[40px] border-[5px] border-slate-700 
-        bg-gradient-to-b from-slate-800/70 to-slate-900/90 shadow-[0_4px_25px_rgba(0,0,0,0.6)] 
-        mt-10 overflow-hidden z-10"
+        className="relative rounded-[40px] border-[5px] border-slate-700 bg-gradient-to-b from-slate-800/70 to-slate-900/90 shadow-[0_4px_25px_rgba(0,0,0,0.6)] mt-28 overflow-hidden z-10"
         style={{
           width: tileSize * gridSize,
           height: tileSize * gridSize,
@@ -172,7 +148,6 @@ export default function Home() {
           gridTemplateRows: `repeat(${gridSize}, 1fr)`,
         }}
       >
-        {/* Ground tiles */}
         {[...Array(gridSize * gridSize)].map((_, i) => {
           const x = i % gridSize;
           const y = Math.floor(i / gridSize);
@@ -191,7 +166,6 @@ export default function Home() {
           );
         })}
 
-        {/* Rooms */}
         {rooms.map((r, i) => {
           const isNear =
             Math.abs(r.x - avatar.x) <= 1 && Math.abs(r.y - avatar.y) <= 1;
@@ -199,8 +173,7 @@ export default function Home() {
             <div
               key={i}
               onClick={() => handleTileClick(r.x, r.y)}
-              className={`absolute flex items-center justify-center text-xs font-semibold rounded-lg 
-              text-center transition-all tracking-wide cursor-pointer ${
+              className={`absolute flex items-center justify-center text-xs font-semibold rounded-lg text-center transition-all tracking-wide cursor-pointer ${
                 isNear
                   ? "bg-emerald-300 text-slate-900 scale-110 shadow-[0_0_10px_rgba(52,211,153,0.6)]"
                   : "bg-white/20 text-white/80 hover:bg-white/30"
@@ -243,13 +216,60 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Three-dot dropdown */}
+      <Menu as="div" className="fixed bottom-6 right-6 z-50 text-left">
+        <Menu.Button className="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-full shadow-lg border border-slate-600 transition-all hover:scale-105">
+          <MoreVertical className="w-5 h-5" />
+        </Menu.Button>
+        <Transition
+          as={Fragment}
+          enter="transition ease-out duration-100"
+          enterFrom="transform opacity-0 scale-95"
+          enterTo="transform opacity-100 scale-100"
+          leave="transition ease-in duration-75"
+          leaveFrom="transform opacity-100 scale-100"
+          leaveTo="transform opacity-0 scale-95"
+        >
+          <Menu.Items className="absolute bottom-14 right-0 mt-2 w-40 origin-bottom-right rounded-xl bg-slate-900/95 backdrop-blur-md border border-slate-700 shadow-2xl focus:outline-none">
+            <div className="p-2 flex flex-col gap-1">
+              <Menu.Item>
+                {({ active }) => (
+                  <Link
+                    to="/leaderboard"
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      active
+                        ? "bg-emerald-400/90 text-slate-900"
+                        : "text-slate-200 hover:bg-slate-700/60"
+                    }`}
+                  >
+                    <Trophy className="w-4 h-4" />
+                    Leaderboard
+                  </Link>
+                )}
+              </Menu.Item>
+              <Menu.Item>
+                {({ active }) => (
+                  <Link
+                    to="/about"
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      active
+                        ? "bg-white/90 text-slate-900"
+                        : "text-slate-200 hover:bg-slate-700/60"
+                    }`}
+                  >
+                    <Info className="w-4 h-4" />
+                    About
+                  </Link>
+                )}
+              </Menu.Item>
+            </div>
+          </Menu.Items>
+        </Transition>
+      </Menu>
+
       {/* Reward Modal */}
       <Transition appear show={showReward} as={Fragment}>
-        <Dialog
-          as="div"
-          className="relative z-50"
-          onClose={() => setShowReward(false)}
-        >
+        <Dialog as="div" className="relative z-50" onClose={() => setShowReward(false)}>
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -264,11 +284,7 @@ export default function Home() {
 
           <div className="fixed inset-0 flex items-center justify-center p-4">
             <Dialog.Panel className="relative bg-slate-900 text-white rounded-2xl p-8 text-center shadow-2xl w-[90%] max-w-sm border border-emerald-400/30">
-              <Lottie
-                animationData={confetti}
-                loop={false}
-                className="w-32 h-32 mx-auto"
-              />
+              <Lottie animationData={confetti} loop={false} className="w-32 h-32 mx-auto" />
               <Dialog.Title className="text-xl font-semibold text-emerald-300">
                 you're well-rested.
               </Dialog.Title>
