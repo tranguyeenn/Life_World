@@ -3,19 +3,6 @@ import "../styles/map.css";
 import { useNavigate } from "react-router-dom";
 import { usePetStats } from "../utils/stats";
 
-const MAP = [
-  "WWWWWWWWWW",
-  "WA SSSS  W",
-  "W   SS   W",
-  "W        W",
-  "WBBB     W",
-  "W        W",
-  "W     IH W",
-  "W        W",
-  "W        W",
-  "WWWWWWWWWW",
-];
-
 export default function MapRoom() {
   const rows = MAP.length;
   const cols = MAP[0].length;
