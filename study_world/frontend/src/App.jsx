@@ -9,6 +9,7 @@ import ShopPage from "./pages/ShopPage.jsx";
 import InventoryPage from "./pages/InventoryPage.jsx";
 import LeaderboardPage from "./pages/LeaderboardPage.jsx";
 import GamesPage from "./pages/GamesPage.jsx";
+import LoginPage from "./pages/LoginPage.jsx";
 
 // === Game Pages ===
 import TypingPage from "./pages/games/TypingPage.jsx";
@@ -29,9 +30,10 @@ export default function App() {
         <Route path="/shop" element={<ShopPage />} />
         <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
-
+        <Route path="/login" element={<LoginPage/>} />
         {/* === Games === */}
         <Route path="/games" element={<GamesPage />} />
+        
         <Route path="/games/typing" element={<TypingPage />} />
         <Route path="/games/wordle" element={<WordlePage />} />
         <Route path="/games/math" element={<MathPage />} />
