@@ -1,55 +1,50 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Dashboard from "../components/Dashboard";
 import LeaderboardTable from "../components/LeaderboardTable";
 import { sortUsersByScore, calculateScore } from "../utils/leaderboard";
 import { Link } from "react-router-dom";
+import { supabase } from "../utils/supabaseClient";
 
 export default function LeaderboardPage() {
   const [users, setUsers] = useState([]);
-  const currentUser = "Trang"; // replace with your real logged-in username later
+  const currentUser = "Trang"; // you’ll replace this later with Supabase Auth user data
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // sample mock users – you’ll replace this with real data eventually
-    const sampleUsers = [
-      {
-        username: "Nora",
-        avatar: "/avatar.png",
-        level: 5,
-        xp: 420,
-        coins: 300,
-        studyTime: 8000,
-        musicHours: 12,
-        gamesPlayed: 5,
-      },
-      {
-        username: "Dylan",
-        avatar: "/avatar.png",
-        level: 7,
-        xp: 620,
-        coins: 100,
-        studyTime: 6500,
-        musicHours: 20,
-        gamesPlayed: 3,
-      },
-      {
-        username: "Luna",
-        avatar: "/avatar.png",
-        level: 2,
-        xp: 24,
-        coins: 250,
-        studyTime: 4000,
-        musicHours: 6,
-        gamesPlayed: 8,
-      },
-    ];
+    async function fetchLeaderboard() {
+      setLoading(true);
+      try {
+        // Fetch users from your Supabase 'users' table
+        const { data, error } = await supabase
+          .from("users")
+          .select("id, name, xp, coins, level, created_at");
 
-    // calculate composite score + sort users
-    const scoredUsers = sampleUsers.map((u) => ({
-      ...u,
-      score: calculateScore(u),
-    }));
+        if (error) throw error;
 
-    setUsers(sortUsersByScore(scoredUsers));
+        // If users exist, compute composite scores
+        const scoredUsers = data.map((u) => ({
+          username: u.name || "Unknown",
+          avatar: "/avatar.png",
+          level: u.level || 1,
+          xp: u.xp || 0,
+          coins: u.coins || 0,
+          studyTime: 0, // placeholder until you track it
+          musicHours: 0,
+          gamesPlayed: 0,
+          score: calculateScore(u),
+        }));
+
+        // Sort by total score
+        const sorted = sortUsersByScore(scoredUsers);
+        setUsers(sorted);
+      } catch (err) {
+        console.error("Error fetching leaderboard:", err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchLeaderboard();
   }, []);
 
   return (
@@ -57,7 +52,6 @@ export default function LeaderboardPage() {
       {/* background gradient glow */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(52,211,153,0.07),_transparent_70%)] pointer-events-none" />
 
-      {/* top dashboard */}
       <div className="w-full mb-6 z-20">
         <Dashboard />
       </div>
@@ -69,10 +63,12 @@ export default function LeaderboardPage() {
         monthly reset • gold, silver, and bronze tiers
       </p>
 
-      {/* main leaderboard table */}
-      <LeaderboardTable users={users} currentUser={currentUser} />
+      {loading ? (
+        <p className="text-slate-400 italic mt-10">loading leaderboard...</p>
+      ) : (
+        <LeaderboardTable users={users} currentUser={currentUser} />
+      )}
 
-      {/* back home button */}
       <Link
         to="/home"
         className="z-50 mt-12 mb-8 flex items-center gap-2 text-emerald-300/90 font-medium hover:text-emerald-300 transition-all"
