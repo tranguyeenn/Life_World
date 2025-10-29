@@ -3,7 +3,7 @@ import Dashboard from "../components/Dashboard";
 import LeaderboardTable from "../components/LeaderboardTable";
 import { sortUsersByScore, calculateScore } from "../utils/leaderboard";
 import { Link } from "react-router-dom";
-import { supabase } from "../utils/supabaseClient";
+import supabase from '/src/utils/supabaseClient.js'
 
 export default function LeaderboardPage() {
   const [users, setUsers] = useState([]);
